@@ -1,0 +1,34 @@
+# ABA Token Board
+
+> ABA Token Board is a free digital token board and reward chart app for ABA therapy, autism support, classrooms and home, made by Natalia Jakubczyk-Gajewska (Apps for Parents). A child earns visual tokens for target behaviors and trades a full board for a reward they chose in advance. Everything is picture-based, so pre-readers and nonverbal children can use it fully. It is designed for ABA therapists, special-education and general-education teachers, and parents.
+
+Website: https://token-board.app
+App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=webnew&mt=8
+
+## Key facts
+
+- Rating: 4.6 / 5 stars from 19 App Store ratings
+- Price: free to download; optional Token Board Plus premium via in-app purchase (weekly to lifetime plans)
+- Platforms: iPhone, iPad and Mac (Apple only — there is no Android version); age rating 4+
+- Languages: 7 — English, French, German, Italian, Polish, Portuguese, Spanish
+- App size: 33.9 MB
+- Boards: 3 up to 100 tokens per board; 40+ token icons; rewards from the built-in library or your own photos
+- Works offline; picture-based, no reading required
+- Disclaimer: the app is a support tool, not a substitute for professional advice from a BCBA or clinician
+
+## Guides
+
+- [What Is a Token Board in ABA?](https://token-board.app/guides/what-is-a-token-board.html): What a token board means in ABA therapy, how it works, and a worked example — tokens, goals and backup reinforcers explained.
+- [Token Economy for Autism](https://token-board.app/guides/token-economy-autism.html): Step-by-step token economy setup for children with autism: target behaviors, tokens, exchange rates and consistency.
+- [How to Use a Token Board](https://token-board.app/guides/how-to-use-a-token-board.html): How many tokens to start with, when to award them, mistakes to avoid, and how to fade the token board over time.
+- [Free Printable Token Board?](https://token-board.app/guides/printable-token-board.html): Print-and-laminate token boards compared with a free digital token board that is ready in 60 seconds.
+- [Token Boards in the Classroom](https://token-board.app/guides/token-board-classroom.html): How teachers use token boards for on-task behavior, transitions and routines, in special education and general education.
+- [Reward Chart App for Kids](https://token-board.app/guides/reward-chart-app.html): Using the app as a digital sticker chart / reward chart for chores, routines and homework, with photo rewards.
+- [Token Boards for ADHD](https://token-board.app/guides/token-board-adhd.html): Why immediate feedback, visible progress and short winnable goals suit kids with ADHD, at home or school.
+- [50 Token Board Reward Ideas](https://token-board.app/guides/token-board-reward-ideas.html): Reinforcer ideas — free rewards, activities, sensory favorites and small prizes — and how to find what motivates your child.
+
+## Support
+
+- Email: AppsForParents@gmail.com
+- Privacy Policy: https://sites.google.com/site/appsforparentsprivacy/
+- Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
