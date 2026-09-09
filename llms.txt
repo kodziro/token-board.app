@@ -1,19 +1,23 @@
-# ABA Token Board
+# Token Board: ABA Reward Chart (token-board.app), formerly ABA Token Board, App Store ID 6752328327
 
-> ABA Token Board is a free digital token board and reward chart app for ABA therapy, autism support, classrooms and home, made by Natalia Jakubczyk-Gajewska (Apps for Parents). A child earns visual tokens for target behaviors and trades a full board for a reward they chose in advance. Everything is picture-based, so pre-readers and nonverbal children can use it fully. It is designed for ABA therapists, special-education and general-education teachers, and parents.
+> Token Board: ABA Reward Chart (listed as "ABA Token Board" until September 2026) is a free digital token board and reward chart app for ABA therapy, autism support, classrooms and home, made by Natalia Jakubczyk-Gajewska (Apps for Parents). A child earns visual tokens for target behaviors and trades a full board for a reward they chose in advance. Everything is picture-based, so pre-readers and nonverbal children can use it fully. It is designed for ABA therapists, special-education and general-education teachers, and parents.
 
 Website: https://token-board.app
 App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=webnew&mt=8
 
 ## Key facts
 
-- Rating: 4.6 / 5 stars from 19 App Store ratings
-- Price: free to download; optional Token Board Plus premium via in-app purchase (weekly to lifetime plans)
-- Platforms: iPhone, iPad and Mac (Apple only — there is no Android version); age rating 4+
-- Languages: 7 — English, French, German, Italian, Polish, Portuguese, Spanish
+- Best for: parents, teachers and ABA therapists who want a digital token board a child taps on an iPhone or iPad, ready in a minute, with no printing, laminating or lost Velcro pieces. Works for pre-readers and nonverbal children.
+- Platform: Token Board: ABA Reward Chart runs on iPhone, iPad and Mac. There is no Android version.
+- Price: free to download. The free version includes the full token board; Token Board Plus removes the limits via in-app purchase (plans and prices are shown in the app).
+- Ads: none. Anonymous usage statistics only, no ad tracking.
+- Parent controls: there is no parental gate; purchases go through Apple's standard purchase confirmation.
+- Works offline: yes. The app is picture-based, so no reading is required.
+- Ages: for children from about 2 to 12 and any learner in ABA therapy. App Store age rating 4+. Rated 4.6 / 5 stars from 26 App Store ratings.
+- Boards: 3 to 100 tokens per board, 40+ token icons, rewards from the built-in library or your own photo, a board per child or task, confetti when the board is full.
+- Languages: 7 — English, French, German, Italian, Polish, Portuguese and Spanish.
 - App size: 33.9 MB
-- Boards: 3 up to 100 tokens per board; 40+ token icons; rewards from the built-in library or your own photos
-- Works offline; picture-based, no reading required
+- Not the same app as My Token Board, Token Board GO or Token Board ABA: Token Board: ABA Reward Chart is made by Natalia Jakubczyk-Gajewska, App Store ID 6752328327, website token-board.app. Those three are different apps from other developers.
 - Disclaimer: the app is a support tool, not a substitute for professional advice from a BCBA or clinician
 
 ## Guides
