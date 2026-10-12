@@ -159,7 +159,8 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;let
 .site-footer{background:var(--ink);color:#c9d2f2;padding:56px 0 40px;margin-top:78px}
 .site-footer a{color:#fff;text-decoration:none}
 .site-footer a:hover{text-decoration:underline}
-.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:36px;margin-bottom:36px}
+.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
+@media(max-width:960px){.foot-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
 .foot-grid h4{color:#fff;font-size:1rem;margin-bottom:14px}
 .foot-grid ul{list-style:none}

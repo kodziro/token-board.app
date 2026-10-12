@@ -31,6 +31,12 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 - [Token Boards for ADHD](https://token-board.app/guides/token-board-adhd.html): Why immediate feedback, visible progress and short winnable goals suit kids with ADHD, at home or school.
 - [50 Token Board Reward Ideas](https://token-board.app/guides/token-board-reward-ideas.html): Reinforcer ideas — free rewards, activities, sensory favorites and small prizes — and how to find what motivates your child.
 
+## Related tools by the same maker
+
+- [First Then Board](https://first-then.app/): a free web First-Then board (one task, then the reward); runs in the browser, no account, printable.
+- [Visual Schedule](https://visual-schedule.app/): an iPhone, iPad and Mac app that shows a child's day as pictures, icons and timers; free to download.
+- [Visual Timer for Kids](https://kidstimer.app/): a picture-reveal timer app for iPhone and iPad; free to download, with optional premium.
+
 ## Support
 
 - Email: AppsForParents@gmail.com

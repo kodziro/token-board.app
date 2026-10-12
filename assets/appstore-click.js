@@ -15,6 +15,11 @@
     strings, no full URLs, nothing personal.
   - position comes from the link's data-td-position attribute (nav, hero,
     demo, download, faq, cta, footer, guide-cta).
+  - Second signal, "crosslink-click": one per click on a link to one of our
+    other sites. Such a link carries data-out (first-then | visual-schedule |
+    kidstimer) and data-td-position. Payload { page, position, target, source,
+    path, referrer }. It never changes "appstore-click": App Store links have
+    no data-out, and a data-out link is never an App Store link.
   - Pageviews are still sent by the separate Web SDK tag in <head>; this file
     does not touch them.
   - Navigation is never blocked or delayed: the click handler only fires a
@@ -25,6 +30,7 @@
 (function () {
   var APP_ID = 'C2A6027C-00E1-4CC9-9FD5-C7A238880FF4';
   var SDK_URL = 'https://cdn.jsdelivr.net/npm/@telemetrydeck/sdk@2.0.4/dist/telemetrydeck.js';
+  var CROSSLINK_TARGETS = { 'first-then': 1, 'visual-schedule': 1, 'kidstimer': 1 };
   var td = null;
 
   function pageSlug() {
@@ -91,6 +97,22 @@
   document.addEventListener('click', function (ev) {
     var target = ev.target;
     if (!target || !target.closest || !td) return;
+    var cross = target.closest('a[data-out]');
+    if (cross) {
+      var out = cross.getAttribute('data-out');
+      if (!CROSSLINK_TARGETS[out]) return;
+      try {
+        td.signal('crosslink-click', {
+          page: pageSlug(),
+          position: cross.getAttribute('data-td-position') || 'other',
+          target: out,
+          source: source(),
+          path: location.pathname,
+          referrer: referrerHost() || 'none'
+        }).catch(function () {});
+      } catch (e) {}
+      return;
+    }
     var link = target.closest('a[href*="id6752328327"]');
     if (!link) return;
     var position = link.getAttribute('data-td-position') || 'other';
