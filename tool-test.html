@@ -39,11 +39,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="stylesheet" href="tool.css?v=20261019a">
+<link rel="stylesheet" href="tool.css?v=20261019b">
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
-body{padding-bottom:220px}
-.tt-panel{position:fixed;left:0;right:0;bottom:0;z-index:2000;height:210px;background:#111827;color:#e5e7eb;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-direction:column;border-top:3px solid #4DA3FF}
+body{padding-bottom:250px}
+.tt-panel{position:fixed;left:0;right:0;bottom:0;z-index:2000;height:240px;background:#111827;color:#e5e7eb;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-direction:column;border-top:3px solid #4DA3FF}
 .tt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px}
 .tt-bar strong{margin-right:6px;color:#4DA3FF}
 .tt-bar button{font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #4DA3FF;background:#1f2937;color:#fff;cursor:pointer}
@@ -59,7 +59,7 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<script type="module" src="tool.js?v=20261019a"></script>
+<script type="module" src="tool.js?v=20261019b"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
 
@@ -88,16 +88,16 @@ window.__tbLog = function (name, payload) {
         <div class="tb-reward" id="tb-reward" role="img" aria-label="Reward: teddy bear">🧸</div>
       </div>
       <div class="tb-slots" id="tb-slots" role="group" aria-label="Token slots">
-        <button type="button" class="tb-slot" aria-label="Token 1" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 2" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 3" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 4" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 5" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 6" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 7" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 8" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 9" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" aria-label="Token 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="0" aria-label="Token 1 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="1" aria-label="Token 2 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="2" aria-label="Token 3 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="3" aria-label="Token 4 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="4" aria-label="Token 5 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="5" aria-label="Token 6 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="6" aria-label="Token 7 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="7" aria-label="Token 8 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="8" aria-label="Token 9 of 10" aria-pressed="false"></button>
+        <button type="button" class="tb-slot" data-index="9" aria-label="Token 10 of 10" aria-pressed="false"></button>
       </div>
     </div>
   </div>
@@ -130,6 +130,14 @@ window.__tbLog = function (name, payload) {
     <button type="button" data-test="clearStorage">clear storage</button>
     <button type="button" data-test="openPanel">open panel</button>
     <button type="button" data-test="simulatePagehide">simulate pagehide</button>
+    <button type="button" data-test="resetTokens">reset tokens</button>
+    <button type="button" data-test="slots3">slots 3</button>
+    <button type="button" data-test="slots5">slots 5</button>
+    <button type="button" data-test="slots10">slots 10</button>
+    <button type="button" data-test="soundToggle">sound off/on</button>
+    <button type="button" data-test="setTitlePrompt">set title</button>
+    <button type="button" data-test="bgBlue">bg blue</button>
+    <button type="button" data-test="bgWhite">bg white</button>
   </div>
   <pre id="tb-log" aria-live="polite"></pre>
 </div>
@@ -137,7 +145,7 @@ window.__tbLog = function (name, payload) {
 <script>
 // Buttons call window.__tbTest[name]() when tool.js provides it; otherwise log a note.
 (function () {
-  var notYet = { fillAll: 'T2', clearStorage: 'T2', simulatePagehide: 'T4' };
+  var notYet = { simulatePagehide: 'T4' };
   document.querySelectorAll('[data-test]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var name = btn.getAttribute('data-test');

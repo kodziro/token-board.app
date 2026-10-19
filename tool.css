@@ -1,0 +1,136 @@
+/* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
+   and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
+:root{--tb-accent:#4DA3FF;--tb-accent-hover:#3690F0;--tb-navy:#1E2A44;--tb-green:#7ED957;--tb-slot:#F2F2F4;--tb-ring:#E6E6EA;--tb-header:59px}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy);background:#fff;line-height:1.55;font-size:1.0625rem}
+.tb-header{position:sticky;top:0;z-index:50;height:var(--tb-header);display:flex;align-items:center;gap:14px;padding:0 16px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--tb-ring)}
+.tb-brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;line-height:1.2;white-space:nowrap}
+.tb-brand img{width:36px;height:36px;border-radius:9px;flex:0 0 36px}
+.tb-brand-sub{font-weight:500;opacity:.8}
+.tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
+.tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
+.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 12px 64px;background:#FFFFFF;overflow:hidden}
+.tb-heading{text-align:center;margin:0 0 22px;max-width:100%}
+.tb-kicker{display:block;font-family:"Nunito",system-ui,sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;line-height:1.5;min-height:1.65rem;color:var(--tb-navy)}
+.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.6rem,5vw,4.6rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
+.tb-stage.is-dark .tb-kicker,.tb-stage.is-dark .tb-title{color:#fff}
+.tb-board-wrap{position:relative;width:100%;max-width:560px}
+.tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
+.tb-board-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;min-height:72px}
+.tb-board-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.6rem;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+.tb-reward{flex:0 0 72px;width:72px;height:72px;border-radius:50%;background:var(--tb-slot);display:flex;align-items:center;justify-content:center;font-size:2.3rem;line-height:1}
+.tb-slots{display:grid;grid-template-columns:repeat(5,minmax(56px,1fr));justify-content:center;gap:12px;margin:0;padding:0;list-style:none}
+.tb-slot{aspect-ratio:1/1;width:100%;min-width:0;border-radius:50%;border:2px solid transparent;background:var(--tb-slot);font:inherit;font-size:2rem;line-height:1;color:inherit;cursor:pointer;padding:0;margin:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tb-slot.is-filled{background:#FFFFFF;border-color:var(--tb-ring)}
+@media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
+@media(max-width:599px){.tb-brand-sub{display:none}}
+
+/* ============================================================================
+   Non-critical tool CSS (only here, not inlined): stage buttons, status pill,
+   privacy link, settings panel, celebration overlay, below-the-fold, footer.
+   ========================================================================== */
+
+/* ---- focus + motion ---- */
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--tb-accent);outline-offset:3px}
+.tb-slot:focus-visible{outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+html{scroll-behavior:smooth}
+
+/* ---- stage buttons (⚙ top-right, Fullscreen top-left) ---- */
+.tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.28);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
+.tb-stage-btn:hover{background:rgba(0,0,0,.4)}
+.tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
+.tb-btn-settings{right:14px;width:46px;height:46px;border-radius:50%;padding:0}
+.tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
+.tb-btn-fs[hidden]{display:none}
+@media(max-width:699px){
+  .tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}
+  .tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
+
+/* ---- status pill (one, above the board) ---- */
+.tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
+.tb-status.is-visible{opacity:1}
+
+/* ---- privacy link (bottom-centre) ---- */
+.tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
+.tb-privacy:hover{opacity:1;text-decoration:underline}
+.tb-stage.is-dark .tb-privacy{color:#fff}
+
+/* ---- settings panel ---- */
+.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:340px;max-width:100%;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;visibility:hidden;transform:translateX(100%);transition:transform .25s ease,visibility 0s linear .25s}
+.tb-stage.is-settings .tb-panel{visibility:visible;transform:none;transition:transform .25s ease,visibility 0s}
+.tb-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px 0 24px;min-height:62px}
+.tb-panel-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.3rem;color:#fff}
+.tb-panel-close{width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px}
+.tb-panel-close:hover{background:rgba(255,255,255,.3)}
+.tb-panel-body{flex:1 1 auto;overflow:auto;padding:12px 14px 24px 24px;display:flex;flex-direction:column;gap:18px}
+.tb-panel-body:empty{padding:0}
+.tb-panel-done{display:none}
+@media(max-width:699px){
+  .tb-panel{left:0;width:auto;transform:translateY(100%)}
+  .tb-panel-head{padding-left:18px}
+  .tb-panel-body{padding-left:18px;padding-bottom:16px}
+  .tb-panel-done{display:block;flex:0 0 60px;height:60px;position:sticky;bottom:0;background:#fff;padding:8px 14px;border-top:1px solid var(--tb-ring)}
+  .tb-done{width:100%;height:44px;border:0;border-radius:999px;background:var(--tb-accent);color:#fff;font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+  .tb-done:hover{background:var(--tb-accent-hover)}
+}
+
+/* ---- celebration overlay (static in T1; shown by .is-complete) ---- */
+.tb-complete{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;background:rgba(30,42,68,.85);color:#fff}
+.tb-stage.is-complete .tb-complete{display:flex}
+.tb-complete-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.4rem;line-height:1.1}
+.tb-complete-sub{margin:0 0 14px;font-size:1.2rem;font-weight:700;opacity:.9}
+.tb-hooray{min-height:64px;min-width:200px;padding:0 36px;border:0;border-radius:999px;background:var(--tb-green);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.4rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.tb-hooray:hover{filter:brightness(1.05)}
+.tb-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+/* ---- T2: backgrounds (free ones; T3 adds the locked ones) ---- */
+.tb-stage[data-bg="white"]{background:#FFFFFF}
+.tb-stage[data-bg="blue"]{background:#D9ECFF}
+
+/* ---- T2: token pop (.3 s) — no layout change, transform only ---- */
+@keyframes tb-pop{0%{transform:scale(.55)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+.tb-slot.is-pop{animation:tb-pop .3s cubic-bezier(.2,.8,.3,1.2)}
+.tb-slot:active{transform:scale(.96)}
+
+/* ---- T2: confetti (60 <i> pieces added by JS on completion; none under prefers-reduced-motion) ---- */
+.tb-confetti i{position:absolute;top:-16px;left:var(--x,50%);width:10px;height:14px;border-radius:2px;background:var(--c,#4DA3FF);transform:rotate(var(--r,0deg));opacity:.95;animation:tb-fall var(--d,3s) linear var(--delay,0s) forwards}
+@keyframes tb-fall{to{transform:translateY(110vh) rotate(720deg);opacity:.8}}
+
+/* ---- native fullscreen: the stage element fills the screen ---- */
+.tb-stage:fullscreen{min-height:100%;height:100%;width:100%}
+.tb-stage:-webkit-full-screen{min-height:100%;height:100%;width:100%}
+
+/* ---- expanded (iPhone) fullscreen mode ---- */
+.tb-stage.is-expanded{position:fixed;inset:0;z-index:1000;min-height:0;height:100%}
+body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
+
+/* ---- below the fold ---- */
+.tb-wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.tb-section{padding:48px 0 8px}
+.tb-section h2{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.15;margin:0 0 16px}
+.tb-section p{margin:0 0 12px}
+.tb-faq details{border:1px solid var(--tb-ring);border-radius:14px;padding:12px 18px;margin:0 0 10px;background:#fff}
+.tb-faq summary{cursor:pointer;font-weight:800;font-family:"Fredoka",system-ui,sans-serif;font-size:1.1rem;line-height:1.3;padding:4px 0}
+.tb-faq details p{margin:10px 0 4px}
+
+/* ---- footer (same markup + class names as app.html / guides) ---- */
+.site-footer{background:var(--tb-navy);color:#c9d2f2;padding:56px 0 40px;margin-top:64px;font-size:1rem}
+.site-footer .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.site-footer a{color:#fff;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.site-footer p{margin:0 0 12px}
+.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
+@media(max-width:960px){.foot-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
+.foot-grid h3,.foot-grid h4{color:#fff;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1rem;margin:0 0 14px}
+.foot-grid ul{list-style:none;margin:0;padding:0}
+.foot-grid li{margin-bottom:9px;font-size:.95rem}
+.foot-brand{display:flex;align-items:center;gap:11px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:#fff;font-size:1.15rem;margin-bottom:14px}
+.foot-brand img{width:40px;height:40px;border-radius:10px;display:block}
+.foot-note{border-top:1px solid rgba(255,255,255,.15);padding-top:22px;font-size:.85rem;color:#9aa7d6}
