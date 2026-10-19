@@ -27,7 +27,7 @@
   tb-feedback {ts}, tb-visits {count, first}.
 */
 
-import { send } from './assets/tool-signals.js?v=20261019h';
+import { send } from './assets/tool-signals.js?v=20261019i';
 
 const stage = document.querySelector('[data-tb-stage]');
 

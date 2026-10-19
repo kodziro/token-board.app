@@ -25,44 +25,40 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-slot{aspect-ratio:1/1;width:100%;min-width:0;border-radius:50%;border:2px solid transparent;background:var(--tb-slot);font:inherit;font-size:2rem;line-height:1;color:inherit;cursor:pointer;padding:0;margin:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .tb-slot.is-filled{background:#FFFFFF;border-color:var(--tb-ring)}
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
-@media(max-width:599px){.tb-brand-sub{display:none}}
-
-/* ============================================================================
-   Non-critical tool CSS (only here, not inlined): stage buttons, status pill,
-   privacy link, settings panel, celebration overlay, below-the-fold, footer.
-   ========================================================================== */
-
-/* ---- focus + motion ---- */
-a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--tb-accent);outline-offset:3px}
 .tb-skip{position:absolute;left:12px;top:-200px;z-index:100;padding:10px 18px;border-radius:999px;background:var(--tb-navy);color:#fff;font-weight:800;text-decoration:none}
 .tb-skip:focus{top:12px}
 .tb-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.tb-slot:focus-visible{outline-offset:2px}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
-}
-html{scroll-behavior:smooth}
-
-/* ---- stage buttons (⚙ top-right, Fullscreen top-left) ---- */
+.tb-stage[data-bg="white"]{background:#FFFFFF}
+.tb-stage[data-bg="blue"]{background:#D9ECFF}
 .tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.55);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
 .tb-stage-btn:hover{background:rgba(0,0,0,.65)}
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
 .tb-btn-settings{right:14px;width:46px;height:46px;border-radius:50%;padding:0}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
-@media(max-width:699px){
-  .tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}
-  .tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-}
-
-/* ---- status pill (one, above the board) ---- */
 .tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
 .tb-status.is-visible{opacity:1}
-
-/* ---- privacy link (bottom-centre) ---- */
 .tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
 .tb-privacy:hover{opacity:1;text-decoration:underline}
 .tb-stage.is-dark .tb-privacy{color:#fff}
+.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:340px;max-width:100%;visibility:hidden;transform:translateX(100%)}
+.tb-complete{display:none}
+@media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+@media(max-width:599px){.tb-brand-sub{display:none}}
+
+/* ============================================================================
+   Non-critical tool CSS (only here, not inlined — tool.css loads non-blocking since T7c, so
+   everything visible above the fold is in the critical block): focus, settings panel,
+   celebration overlay, confetti, fullscreen, below-the-fold, footer.
+   ========================================================================== */
+
+/* ---- focus + motion ---- */
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--tb-accent);outline-offset:3px}
+.tb-slot:focus-visible{outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+html{scroll-behavior:smooth}
 
 /* ---- settings panel ---- */
 .tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:340px;max-width:100%;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;visibility:hidden;transform:translateX(100%);transition:transform .25s ease,visibility 0s linear .25s}
@@ -87,15 +83,15 @@ html{scroll-behavior:smooth}
 .tb-lock{position:absolute;right:-4px;bottom:-4px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--tb-navy);display:flex;align-items:center;justify-content:center}
 .tb-lock svg{width:11px;height:11px;fill:currentColor}
 .tb-legend{margin:-6px 0 0;font-size:.8rem;color:rgba(255,255,255,.96)}
-.tb-interest{background:rgba(255,255,255,.14);border-radius:14px;padding:14px;color:#fff}
+.tb-interest{background:rgba(0,0,0,.25);border-radius:14px;padding:14px;color:#fff}
 .tb-interest p{margin:0 0 10px;font-size:.95rem;line-height:1.4}
 .tb-pill{height:44px;padding:0 20px;border:0;border-radius:999px;background:#fff;color:var(--tb-navy);font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
 .tb-pill:hover{background:#f2f6ff}
 .tb-pill[disabled]{cursor:default;opacity:.9}
 .tb-interest-page{background:#EEF5FF;color:var(--tb-navy);border:1px solid #D9ECFF;max-width:560px;padding:20px}
-.tb-interest-page .tb-pill{background:var(--tb-accent);color:#fff}
-.tb-interest-page .tb-pill:hover{background:var(--tb-accent-hover)}
-.tb-seg{display:inline-flex;background:rgba(255,255,255,.18);border-radius:999px;padding:3px}
+.tb-interest-page .tb-pill{background:var(--tb-accent);color:var(--tb-navy)}
+.tb-interest-page .tb-pill:hover{background:#6DB5FF}
+.tb-seg{display:inline-flex;background:rgba(0,0,0,.25);border-radius:999px;padding:3px}
 .tb-seg-item{position:relative}
 .tb-seg-item input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
 .tb-seg-item span{display:flex;align-items:center;justify-content:center;min-width:64px;height:38px;border-radius:999px;font-weight:700;font-size:1rem;color:#fff;pointer-events:none}
@@ -109,7 +105,7 @@ html{scroll-behavior:smooth}
 .tb-switch input:checked~.tb-switch-track{background:var(--tb-accent)}
 .tb-switch input:checked~.tb-switch-track::after{transform:translateX(20px)}
 .tb-switch input:focus-visible~.tb-switch-track{outline:3px solid var(--tb-accent);outline-offset:3px}
-.tb-feedback{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:rgba(255,255,255,.14);border-radius:12px;padding:6px 6px 6px 12px}
+.tb-feedback{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:rgba(0,0,0,.25);border-radius:12px;padding:6px 6px 6px 12px}
 .tb-feedback[hidden]{display:none}
 .tb-feedback-q{flex:1 1 auto;font-weight:700;font-size:.9rem}
 .tb-feedback-btn{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#fff;font-size:1.3rem;line-height:1;cursor:pointer}
@@ -121,8 +117,8 @@ html{scroll-behavior:smooth}
   .tb-panel-head{padding-left:18px}
   .tb-panel-body{padding-left:18px;padding-bottom:16px}
   .tb-panel-done{display:block;flex:0 0 60px;height:60px;position:sticky;bottom:0;background:#fff;padding:8px 14px;border-top:1px solid var(--tb-ring)}
-  .tb-done{width:100%;height:44px;border:0;border-radius:999px;background:var(--tb-accent);color:#fff;font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
-  .tb-done:hover{background:var(--tb-accent-hover)}
+  .tb-done{width:100%;height:44px;border:0;border-radius:999px;background:#1F6FD1;color:#fff;font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+  .tb-done:hover{background:#1A5FB4}
 }
 
 /* ---- celebration overlay (shown by .is-complete; role=dialog, focus stays on Hooray, Escape = Hooray) ---- */
@@ -133,10 +129,6 @@ html{scroll-behavior:smooth}
 .tb-hooray{min-height:64px;min-width:200px;padding:0 36px;border:0;border-radius:999px;background:var(--tb-green);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.4rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .tb-hooray:hover{filter:brightness(1.05)}
 .tb-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-
-/* ---- backgrounds (free ones; locked ones are never applied) ---- */
-.tb-stage[data-bg="white"]{background:#FFFFFF}
-.tb-stage[data-bg="blue"]{background:#D9ECFF}
 
 /* ---- token pop (.3 s) — no layout change, transform only ---- */
 @keyframes tb-pop{0%{transform:scale(.55)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
