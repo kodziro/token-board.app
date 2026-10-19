@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E2A44">
 <meta name="robots" content="noindex, nofollow">
 <title>Token Board – tool test page (internal)</title>
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap"></noscript>
 <style>
 /* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
    and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
@@ -39,7 +42,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="stylesheet" href="tool.css?v=20261019e">
+<link rel="stylesheet" href="tool.css?v=20261019h">
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
@@ -60,10 +63,11 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261019e">
-<script type="module" src="tool.js?v=20261019e"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261019h">
+<script type="module" src="tool.js?v=20261019h"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
+<a class="tb-skip" href="#board">Skip to the board</a>
 <p class="tt-banner">Test mode: signals are sent to TelemetryDeck as test data.</p>
 
 <header class="tb-header">
@@ -102,12 +106,13 @@ window.__tbLog = function (name, payload) {
         <button type="button" class="tb-slot" data-index="8" aria-label="Token 9 of 10" aria-pressed="false"></button>
         <button type="button" class="tb-slot" data-index="9" aria-label="Token 10 of 10" aria-pressed="false"></button>
       </div>
+      <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
     </div>
   </div>
 
   <a class="tb-privacy" href="#faq-privacy">🔒 Privacy: Nothing is uploaded — your board stays on this device.</a>
 
-  <aside id="tb-panel" class="tb-panel" aria-labelledby="tb-panel-title" aria-hidden="true">
+  <aside id="tb-panel" class="tb-panel" aria-label="Settings" aria-hidden="true">
     <div class="tb-panel-head">
       <h2 class="tb-panel-title" id="tb-panel-title">Settings</h2>
       <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close settings">×</button>

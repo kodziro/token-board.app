@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E2A44">
 <title>Free Online Token Board – ABA, Classroom &amp; Home | Token Board</title>
 <meta name="description" content="Free online token board for ABA therapy, classrooms and home. Tap to earn tokens, pick a reward, celebrate the goal. Nothing uploaded, no accounts, no ads.">
 <link rel="canonical" href="https://token-board.app/">
@@ -20,7 +21,9 @@
 <link rel="apple-touch-icon" href="assets/icon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap"></noscript>
 <style>
 /* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
    and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
@@ -51,7 +54,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="stylesheet" href="tool.css?v=20261019e">
+<link rel="stylesheet" href="tool.css?v=20261019h">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -178,10 +181,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261019e">
-<script type="module" src="tool.js?v=20261019e"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261019h">
+<script type="module" src="tool.js?v=20261019h"></script>
 </head>
 <body>
+<a class="tb-skip" href="#board">Skip to the board</a>
 
 <header class="tb-header">
   <a class="tb-brand" href="#board"><img src="assets/icon.jpg" alt="" width="36" height="36"> Token Board <span class="tb-brand-sub">– free classroom tools</span></a>
@@ -219,12 +223,13 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         <button type="button" class="tb-slot" data-index="8" aria-label="Token 9 of 10" aria-pressed="false"></button>
         <button type="button" class="tb-slot" data-index="9" aria-label="Token 10 of 10" aria-pressed="false"></button>
       </div>
+      <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
     </div>
   </div>
 
   <a class="tb-privacy" href="#faq-privacy">🔒 Privacy: Nothing is uploaded — your board stays on this device.</a>
 
-  <aside id="tb-panel" class="tb-panel" aria-labelledby="tb-panel-title" aria-hidden="true">
+  <aside id="tb-panel" class="tb-panel" aria-label="Settings" aria-hidden="true">
     <div class="tb-panel-head">
       <h2 class="tb-panel-title" id="tb-panel-title">Settings</h2>
       <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close settings">×</button>
@@ -407,6 +412,40 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         <span class="gc-link">Read the guide →</span>
       </a>
     </nav>
+  <h2 id="tool-pages" class="tb-section-sub">Using the free board</h2>
+  <p class="tb-note">Short pages for one setting each: ABA sessions, First-Then, autism, classroom, teletherapy.</p>
+  <nav class="guides" aria-label="Tool pages">
+      <a class="guide-card" href="aba-token-board.html">
+        <span class="gc-tag">ABA sessions</span>
+        <h3>ABA token board online</h3>
+        <p>What a token board is in ABA, when a BCBA or RBT uses one, and how to run a session with the free board.</p>
+        <span class="gc-link">Read the page →</span>
+      </a>
+      <a class="guide-card" href="first-then-board.html">
+        <span class="gc-tag">First step</span>
+        <h3>First-Then board online</h3>
+        <p>When a First-Then board is enough, and when 3, 5 or 10 token slots are the next step.</p>
+        <span class="gc-link">Read the page →</span>
+      </a>
+      <a class="guide-card" href="token-board-for-autism.html">
+        <span class="gc-tag">Autism</span>
+        <h3>Token board for autism</h3>
+        <p>Visual, predictable, picture-based reinforcement: reinforcers, token counts and how to fade the board.</p>
+        <span class="gc-link">Read the page →</span>
+      </a>
+      <a class="guide-card" href="classroom.html">
+        <span class="gc-tag">Classroom</span>
+        <h3>Token board for the classroom</h3>
+        <p>Whole class or one student on a whiteboard, projector or Chromebook; 10 slots for a lesson.</p>
+        <span class="gc-link">Read the page →</span>
+      </a>
+      <a class="guide-card" href="teletherapy.html">
+        <span class="gc-tag">Teletherapy</span>
+        <h3>Token board for teletherapy</h3>
+        <p>Share the board in Zoom or Google Meet with sound, step by step. You tap, the child watches.</p>
+        <span class="gc-link">Read the page →</span>
+      </a>
+    </nav>
 </section>
 
 </main>
@@ -415,7 +454,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <div class="foot-brand"><img src="assets/icon.jpg" alt="Token Board: ABA Reward Chart app icon"> Token Board: ABA Reward Chart</div>
+        <div class="foot-brand"><img src="assets/icon.jpg" alt="Token Board: ABA Reward Chart app icon" width="40" height="40" loading="lazy"> Token Board: ABA Reward Chart</div>
         <p>A visual token board and reward chart app for ABA therapy, autism support, classrooms and home. Made with care by Natalia Jakubczyk-Gajewska.</p>
       </div>
       <div>

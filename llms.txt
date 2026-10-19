@@ -30,6 +30,14 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 - Not the same app as My Token Board, Token Board GO or Token Board ABA: Token Board: ABA Reward Chart is made by Natalia Jakubczyk-Gajewska, App Store ID 6752328327, website token-board.app. Those three are different apps from other developers.
 - Disclaimer: the app is a support tool, not a substitute for professional advice from a BCBA or clinician
 
+## Tool pages (how to use the free online board)
+
+- [ABA Token Board Online](https://token-board.app/aba-token-board.html): What a token board is in ABA, when a BCBA or RBT uses one, and how to run a session with the free web board (reinforcer first, tokens for the target behavior, exchange).
+- [First-Then Board Online](https://token-board.app/first-then-board.html): What a First-Then board is, when it is enough, and when a token board with 3, 5 or 10 slots is the next step; links to the standalone board at first-then.app.
+- [Token Board for Autism](https://token-board.app/token-board-for-autism.html): Why visual, predictable, picture-based reinforcement suits many autistic children; how to pick reinforcers, how many tokens, how to fade the board.
+- [Token Board for the Classroom](https://token-board.app/classroom.html): Whole class or one student, interactive whiteboard, projector, Chromebook, transitions and routines, 10 slots for a lesson.
+- [Token Board for Teletherapy](https://token-board.app/teletherapy.html): Step-by-step for Zoom and Google Meet: share the tab or window with sound, second window, fullscreen; the board runs on the therapist's screen, the child watches.
+
 ## Guides
 
 - [What Is a Token Board in ABA?](https://token-board.app/guides/what-is-a-token-board.html): What a token board means in ABA therapy, how it works, and a worked example — tokens, goals and backup reinforcers explained.

@@ -3,8 +3,9 @@
   Same SDK and mechanism as appstore-click.js (which stays self-contained because app.html and
   the 8 guides load it on their own; the small helpers are duplicated on purpose, not shared).
 
-  - Loads @telemetrydeck/sdk 2.0.4 from jsDelivr at runtime. If it fails, nothing is sent and
-    the tool keeps working. Signals sent before the SDK is ready wait in a short queue.
+  - Loads @telemetrydeck/sdk 2.0.4 from jsDelivr at runtime, lazily: after the window load event in
+    an idle slot (2 s at most), so it never competes with first paint. If it fails, nothing is sent
+    and the tool keeps working. Signals sent before the SDK is ready wait in a short queue.
   - send(name, payload): one signal, payload + { page, source, path, referrer }. Values are short
     bucketed strings. The board title is never sent (tool.js only passes what:'title').
   - Cookieless: clientUser is a random value per page load, never stored.
@@ -58,7 +59,8 @@ function post(name, data) {
   try { td.signal(name, data).catch(() => {}); } catch (e) { /* never break the tool */ }
 }
 
-try {
+function loadSdk() {
+  try {
   import(SDK_URL).then(mod => {
     const TelemetryDeck = mod.default;
     const instance = new TelemetryDeck({ appID: APP_ID, clientUser: randomId(), testMode: isTestMode() });
@@ -74,7 +76,17 @@ try {
     td = instance;
     while (pending.length) { const [n, d] = pending.shift(); post(n, d); }
   }).catch(() => { failed = true; pending.length = 0; });
-} catch (e) { failed = true; }
+  } catch (e) { failed = true; }
+}
+
+/* Lazy (T7): the SDK never competes with first paint. It loads after the window load event, in an
+   idle slot (requestIdleCallback, at most 2 s later); signals sent before that wait in the queue. */
+function scheduleSdk() {
+  const run = () => (typeof requestIdleCallback === 'function' ? requestIdleCallback(loadSdk, { timeout: 2000 }) : setTimeout(loadSdk, 1));
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+}
+scheduleSdk();
 
 /** Send one signal. Returns nothing; never throws. */
 export function send(name, payload) {

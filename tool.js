@@ -3,6 +3,11 @@
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
 
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
+  T7 (2026-10-19): a11y — #tb-count (visually hidden, aria-live) says "N of M earned" on every fill/remove;
+    celebration overlay keeps focus on Hooray (Tab trapped) and Escape = Hooray; the settings panel is
+    role=dialog aria-modal only on phones (sheet). ?v=20261019g.
+  T5b (2026-10-19): panel grids use minmax(0,1fr) columns (no horizontal overflow); thumbs 1 px
+    white border normally, 3 px accent when selected (CSS only, tool.css). ?v=20261019f.
   T4 (2026-10-19): analytics — signal() sends through assets/tool-signals.js (TelemetryDeck, test
     mode = ?test=1 / body[data-td-test="1"] / localhost). New: tool-start {slots, icon, background}
     once per page load on the first tap; tool-session {minutes} once per session (pagehide, tab hidden, or 10 min
@@ -22,7 +27,7 @@
   tb-feedback {ts}, tb-visits {count, first}.
 */
 
-import { send } from './assets/tool-signals.js?v=20261019e';
+import { send } from './assets/tool-signals.js?v=20261019h';
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -163,6 +168,8 @@ const titleEl = document.getElementById('tb-board-title');
 const rewardEl = document.getElementById('tb-reward');
 const overlay = document.getElementById('tb-complete');
 const hoorayBtn = stage && stage.querySelector('[data-tb="hooray"]');
+const countEl = document.getElementById('tb-count');
+function announceCount() { if (countEl) countEl.textContent = `${model.filled.length} of ${model.slots} earned`; }
 
 function slotLabel(i) { return `Token ${i + 1} of ${model.slots}`; }
 
@@ -187,6 +194,7 @@ function renderSlots() {
   }
   slotsEl.replaceChildren(frag);
   slotsEl.setAttribute('aria-label', `Token slots, ${model.filled.length} of ${model.slots} earned`);
+  announceCount();
 }
 
 function render() {
@@ -222,6 +230,7 @@ function fill(i) {
     }
   }
   if (slotsEl) slotsEl.setAttribute('aria-label', `Token slots, ${model.filled.length} of ${model.slots} earned`);
+  announceCount();
   tokenTone();
   if (model.filled.length === model.slots && !completing) {
     completing = true;
@@ -237,6 +246,7 @@ function unfill(i) {
   const btn = slotButton(i);
   if (btn) paintSlot(btn, i);
   if (slotsEl) slotsEl.setAttribute('aria-label', `Token slots, ${model.filled.length} of ${model.slots} earned`);
+  announceCount();
   if (completing && model.filled.length < model.slots) { completing = false; clearTimeout(completeTimer); }
 }
 
@@ -391,6 +401,9 @@ export function openPanel() {
   lastFocus = document.activeElement;
   stage.classList.add('is-settings');
   panel.setAttribute('aria-hidden', 'false');
+  // Phone: the panel is a full-stage sheet, so it is a modal dialog; desktop: a side panel next to the board.
+  if (isPhone()) { panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); }
+  else { panel.removeAttribute('role'); panel.removeAttribute('aria-modal'); }
   if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'true');
   maybeShowFeedback();
   const first = panel.querySelector(FOCUSABLE);
@@ -401,6 +414,7 @@ export function closePanel() {
   if (!stage || !panel || !stage.classList.contains('is-settings')) return;
   stage.classList.remove('is-settings');
   panel.setAttribute('aria-hidden', 'true');
+  panel.removeAttribute('role'); panel.removeAttribute('aria-modal');
   if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
   const back = (lastFocus && document.contains(lastFocus)) ? lastFocus : settingsBtn;
   if (back && typeof back.focus === 'function') back.focus();
@@ -689,6 +703,11 @@ if (stage) {
     closePanel();
   });
   document.addEventListener('keydown', ev => {
+    if (stage.classList.contains('is-complete')) {
+      // Celebration dialog: the only control is Hooray. Tab stays on it, Escape = Hooray.
+      if (ev.key === 'Escape') { ev.preventDefault(); hooray(); return; }
+      if (ev.key === 'Tab') { ev.preventDefault(); if (hoorayBtn) hoorayBtn.focus(); return; }
+    }
     if (ev.key === 'Escape') {
       if (stage.classList.contains('is-settings')) { ev.preventDefault(); closePanel(); return; }
       if (expanded) { ev.preventDefault(); exitExpanded(false); }

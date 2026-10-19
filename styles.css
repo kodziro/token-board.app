@@ -92,7 +92,7 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;let
 /* interactive demo board — the signature element */
 .demo-board{background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:28px 28px 24px;max-width:430px;margin-inline:auto;width:100%}
 .demo-board .db-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-.demo-board .db-title h3{font-size:1.15rem}
+.demo-board .db-title h2,.demo-board .db-title h3{font-size:1.15rem;margin:1em 0}
 .demo-board .db-goal{font-size:.85rem;font-weight:800;color:var(--teal);background:var(--teal-soft);padding:.3em .8em;border-radius:999px}
 .demo-board .db-hint{font-size:.9rem;color:var(--ink-soft);margin-bottom:18px}
 .db-tokens{display:flex;justify-content:space-between;gap:10px;margin-bottom:20px}
@@ -172,7 +172,7 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;let
 .foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
 @media(max-width:960px){.foot-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
-.foot-grid h4{color:#fff;font-size:1rem;margin-bottom:14px}
+.foot-grid h3,.foot-grid h4{color:#fff;font-size:1rem;margin-bottom:14px}
 .foot-grid ul{list-style:none}
 .foot-grid li{margin-bottom:9px;font-size:.95rem}
 .foot-brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:600;color:#fff;font-size:1.15rem;margin-bottom:14px}
