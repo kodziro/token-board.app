@@ -39,10 +39,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="stylesheet" href="tool.css?v=20261019c">
+<link rel="stylesheet" href="tool.css?v=20261019e">
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
+.tt-banner{margin:0;padding:6px 12px;background:#FFF3C4;color:#1E2A44;font:700 13px/1.4 system-ui,sans-serif;text-align:center}
 .tt-panel{position:fixed;left:0;right:0;bottom:0;z-index:2000;height:240px;background:#111827;color:#e5e7eb;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-direction:column;border-top:3px solid #4DA3FF}
 .tt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px}
 .tt-bar strong{margin-right:6px;color:#4DA3FF}
@@ -59,9 +60,11 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<script type="module" src="tool.js?v=20261019c"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261019e">
+<script type="module" src="tool.js?v=20261019e"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
+<p class="tt-banner">Test mode: signals are sent to TelemetryDeck as test data.</p>
 
 <header class="tb-header">
   <a class="tb-brand" href="index.html"><img src="assets/icon.jpg" alt="" width="36" height="36"> Token Board <span class="tb-brand-sub">– free classroom tools</span></a>
@@ -196,7 +199,7 @@ window.__tbLog = function (name, payload) {
 <script>
 // Buttons call window.__tbTest[name]() when tool.js provides it; otherwise log a note.
 (function () {
-  var notYet = { simulatePagehide: 'T4' };
+  var notYet = {};
   document.querySelectorAll('[data-test]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var name = btn.getAttribute('data-test');

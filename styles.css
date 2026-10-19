@@ -55,6 +55,16 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.15;let
 .btn-sm{padding:.55em 1.2em;font-size:.92rem}
 @media(max-width:720px){.site-nav a.hide-m{display:none}.brand .brand-sub{display:none}}
 
+/* ---------- shared tool header (same rules as the critical block in index.html / tool.css; T5 2026-10-19) ---------- */
+.tb-header{position:sticky;top:0;z-index:50;height:59px;display:flex;align-items:center;gap:14px;padding:0 16px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid #E6E6EA}
+.tb-brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:#1E2A44;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;line-height:1.2;white-space:nowrap}
+.tb-brand img{width:36px;height:36px;border-radius:9px;flex:0 0 36px;box-shadow:none}
+.tb-brand-sub{font-weight:500;opacity:.8}
+.tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
+.tb-nav a{color:#1E2A44;text-decoration:none;padding:8px 2px;line-height:1}
+.tb-nav a:hover{text-decoration:underline}
+@media(max-width:599px){.tb-brand-sub{display:none}}
+
 /* ---------- hero ---------- */
 .hero{position:relative;overflow:hidden;padding:70px 0 84px;
   background:

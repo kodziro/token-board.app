@@ -17,7 +17,7 @@
     demo, download, faq, cta, footer, guide-cta).
   - Second signal, "crosslink-click": one per click on a link to one of our
     other sites. Such a link carries data-out (first-then | visual-schedule |
-    kidstimer) and data-td-position. Payload { page, position, target, source,
+    kidstimer | keepquiet) and data-td-position. Payload { page, position, target, source,
     path, referrer }. It never changes "appstore-click": App Store links have
     no data-out, and a data-out link is never an App Store link.
   - Pageviews are still sent by the separate Web SDK tag in <head>; this file
@@ -26,11 +26,13 @@
     keepalive POST and returns. If the SDK fails to load, nothing is sent and
     the links keep working as plain links.
   - Cookieless: clientUser is a random value per page load, never stored.
+  - Test mode (signals flagged as test data): ?test=1 in the URL,
+    body[data-td-test="1"], or localhost / file: (added 2026-10-19, T4).
 */
 (function () {
   var APP_ID = 'C2A6027C-00E1-4CC9-9FD5-C7A238880FF4';
   var SDK_URL = 'https://cdn.jsdelivr.net/npm/@telemetrydeck/sdk@2.0.4/dist/telemetrydeck.js';
-  var CROSSLINK_TARGETS = { 'first-then': 1, 'visual-schedule': 1, 'kidstimer': 1 };
+  var CROSSLINK_TARGETS = { 'first-then': 1, 'visual-schedule': 1, 'kidstimer': 1, 'keepquiet': 1 };
   var td = null;
 
   function pageSlug() {
@@ -67,6 +69,9 @@
   }
 
   function isTestMode() {
+    // Same rule as assets/tool-signals.js: ?test=1, body[data-td-test="1"], localhost / file:.
+    try { if (new URLSearchParams(location.search).get('test') === '1') return true; } catch (e) {}
+    try { if (document.body && document.body.getAttribute('data-td-test') === '1') return true; } catch (e) {}
     return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) ||
       location.protocol === 'file:';
   }

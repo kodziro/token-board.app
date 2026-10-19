@@ -3,6 +3,11 @@
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
 
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
+  T4 (2026-10-19): analytics — signal() sends through assets/tool-signals.js (TelemetryDeck, test
+    mode = ?test=1 / body[data-td-test="1"] / localhost). New: tool-start {slots, icon, background}
+    once per page load on the first tap; tool-session {minutes} once per session (pagehide, tab hidden, or 10 min
+    idle; a later tap starts a new session); visit {nth, daysSinceFirst} once per page load from
+    localStorage tb-visits {count, first}.
   T3 (2026-10-19): settings panel content (title, token icon, background, slots, reward, sound), locked
     items with the "I'm interested" card, feedback thumbs, pro-view. Signals: setting-change {what},
     pro-click {item, from}, pro-view, feedback {vote, minutes}. localStorage: tb-feedback {ts}.
@@ -13,16 +18,17 @@
       fullscreen fallback). data-bg = background id ("white" | "blue" in T2).
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
-  Nothing is uploaded. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown).
+  Nothing personal is sent. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown),
+  tb-feedback {ts}, tb-visits {count, first}.
 */
+
+import { send } from './assets/tool-signals.js?v=20261019e';
 
 const stage = document.querySelector('[data-tb-stage]');
 
-/** Signal stub: log only. T4 replaces the body with the TelemetryDeck call. */
+/** One analytics signal (TelemetryDeck via tool-signals.js; echoed to window.__tbLog in test mode). */
 export function signal(name, payload) {
-  try {
-    if (typeof window.__tbLog === 'function') window.__tbLog(name, payload || {});
-  } catch (e) { /* never break the tool */ }
+  try { send(name, payload || {}); } catch (e) { /* never break the tool */ }
 }
 
 const isTestMode = () => {
@@ -234,10 +240,57 @@ function unfill(i) {
   if (completing && model.filled.length < model.slots) { completing = false; clearTimeout(completeTimer); }
 }
 
-let sessionStart = 0; // first tap on a slot (in memory only)
+/* ---------------- session + tool-start (T4) ---------------- */
+const IDLE_MS = 10 * 60 * 1000;
+let sessionStart = 0;   // first tap of the current session (in memory only)
+let lastTap = 0;
+let sessionOpen = false;
+let startSent = false;  // tool-start: once per page load
+let idleTimer = 0;
+
+function minutesBucket(ms) {
+  const m = ms / 60000;
+  return m < 1 ? '<1' : m < 5 ? '1-5' : m < 15 ? '5-15' : m < 30 ? '15-30' : '30+';
+}
+
+/** tool-session once per session: on pagehide or after 10 min without a tap. */
+function endSession() {
+  if (!sessionOpen) return;
+  sessionOpen = false;
+  clearTimeout(idleTimer);
+  signal('tool-session', { minutes: minutesBucket(Math.max(0, lastTap - sessionStart)) });
+}
+
+function noteTap() {
+  const now = Date.now();
+  if (!sessionOpen) { sessionOpen = true; sessionStart = now; }
+  lastTap = now;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(endSession, IDLE_MS);
+  if (!startSent) {
+    startSent = true;
+    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: model.background });
+  }
+}
+
 function tapSlot(i) {
-  if (!sessionStart) sessionStart = Date.now();
+  noteTap();
   if (model.filled.includes(i)) unfill(i); else fill(i);
+}
+
+/* ---------------- visit counter (T4): once per page load ---------------- */
+function sendVisit() {
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem('tb-visits') || 'null'); } catch (e) { v = null; }
+  const now = Date.now();
+  const count = (v && Number.isInteger(v.count) && v.count >= 0 ? v.count : 0) + 1;
+  const first = (v && typeof v.first === 'number' && v.first > 0 && v.first <= now) ? v.first : now;
+  try { localStorage.setItem('tb-visits', JSON.stringify({ count, first })); } catch (e) { /* ignore */ }
+  const days = Math.floor((now - first) / 86400000);
+  signal('visit', {
+    nth: count === 1 ? '1' : count === 2 ? '2' : count <= 5 ? '3-5' : count <= 10 ? '6-10' : '11+',
+    daysSinceFirst: days < 1 ? '0' : days <= 7 ? '1-7' : days <= 30 ? '8-30' : '31+'
+  });
 }
 
 /* ---------------- celebration ---------------- */
@@ -497,10 +550,6 @@ const FEEDBACK_DAYS = 30;
 const FEEDBACK_MIN_MS = 2 * 60 * 1000;
 let feedbackTimer = 0;
 
-function minutesBucket(ms) {
-  const m = ms / 60000;
-  return m < 1 ? '<1' : m < 5 ? '1-5' : m < 15 ? '5-15' : m < 30 ? '15-30' : '30+';
-}
 function feedbackRecent() {
   try {
     const v = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || 'null');
@@ -617,6 +666,9 @@ if (stage) {
   wirePanel();
   render();
   wireProCard();
+  sendVisit();
+  window.addEventListener('pagehide', endSession);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') endSession(); });
 
   if (slotsEl) {
     slotsEl.addEventListener('click', ev => {
@@ -677,7 +729,9 @@ if (stage) {
       },
       bgBlue() { setBackground('blue'); }, bgWhite() { setBackground('white'); },
       sessionPlus3() { sessionStart = (sessionStart || Date.now()) - 3 * 60 * 1000; showStatus('Session start moved back 3 min'); },
-      setSessionStart(ts) { sessionStart = ts; }
+      setSessionStart(ts) { sessionStart = ts; },
+      simulatePagehide() { window.dispatchEvent(new Event('pagehide')); },
+      simulateIdle() { endSession(); } // what the 10-min idle timer does
     });
   }
 }
