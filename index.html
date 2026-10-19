@@ -42,10 +42,10 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="stylesheet" href="tool.css?v=20261019b">
+<link rel="stylesheet" href="tool.css?v=20261019c">
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="tool.js?v=20261019b"></script>
+<script type="module" src="tool.js?v=20261019c"></script>
 </head>
 <body>
 
@@ -95,7 +95,50 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       <h2 class="tb-panel-title" id="tb-panel-title">Settings</h2>
       <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close settings">×</button>
     </div>
-    <div class="tb-panel-body" id="tb-panel-body"></div>
+    <div class="tb-panel-body" id="tb-panel-body">
+      <div class="tb-feedback" id="tb-feedback" hidden>
+        <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
+        <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
+        <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
+        <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
+      </div>
+      <section class="tb-set">
+        <label class="tb-set-label" for="tb-title-input">Title</label>
+        <input class="tb-input" id="tb-title-input" type="text" maxlength="40" autocomplete="off" spellcheck="false">
+      </section>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
+        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
+      </section>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
+        <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
+      </section>
+      <p class="tb-legend">🔒 = locked — tap one to tell us you're interested</p>
+      <div class="tb-interest" id="tb-interest" hidden>
+        <p>Want more token icons and backgrounds? If enough teachers ask, we'll build them.</p>
+        <button type="button" class="tb-pill" data-interest="panel">I'm interested</button>
+      </div>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-slots-label">Slots</h3>
+        <div class="tb-seg" role="radiogroup" aria-labelledby="tb-slots-label">
+          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="3"><span>3</span></label>
+          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="5"><span>5</span></label>
+          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="10"><span>10</span></label>
+        </div>
+      </section>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
+        <div class="tb-grid tb-grid-scroll" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
+      </section>
+      <section class="tb-set tb-set-row">
+        <label class="tb-switch" for="tb-sound">
+          <span class="tb-set-label">Sound</span>
+          <input type="checkbox" id="tb-sound" role="switch">
+          <span class="tb-switch-track" aria-hidden="true"></span>
+        </label>
+      </section>
+    </div>
     <div class="tb-panel-done"><button type="button" class="tb-done" data-tb="close">Done</button></div>
   </aside>
 
@@ -121,6 +164,13 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 
 <section id="app" class="tb-section tb-wrap">
   <h2>App</h2>
+</section>
+
+<section id="interest" class="tb-section tb-wrap">
+  <div class="tb-interest tb-interest-page" id="pro-card">
+    <p>Want more token icons and backgrounds? If enough teachers ask, we'll build them.</p>
+    <button type="button" class="tb-pill" data-interest="card">I'm interested</button>
+  </div>
 </section>
 
 <section id="guides" class="tb-section tb-wrap">

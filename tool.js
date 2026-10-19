@@ -3,6 +3,9 @@
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
 
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
+  T3 (2026-10-19): settings panel content (title, token icon, background, slots, reward, sound), locked
+    items with the "I'm interested" card, feedback thumbs, pro-view. Signals: setting-change {what},
+    pro-click {item, from}, pro-view, feedback {vote, minutes}. localStorage: tb-feedback {ts}.
   T2 (2026-10-19): board core — model, slots 3/5/10, tap to earn/remove, pop + tone, celebration
     (confetti, "Hooray!" resets), Web Audio tones (lazy, only inside a tap, never when sound is off),
     localStorage persistence ("tb-board"), exports for T3/T4.
@@ -49,7 +52,36 @@ export function showStatus(text, ms = 2000) {
    ===================================================================== */
 const STORAGE_KEY = 'tb-board';
 const SLOT_COUNTS = [3, 5, 10];
-const BACKGROUNDS = { white: '#FFFFFF', blue: '#D9ECFF' }; // T3 adds the locked ones
+// Catalogs (CLAUDE.md § Browser tool: free icons ⭐ ❤️ 😊, free backgrounds white + light blue; all others locked).
+const ICONS = [
+  ['star', '⭐', 'Star', true], ['heart', '❤️', 'Heart', true], ['smile', '😊', 'Smiling face', true],
+  ['sun', '☀️', 'Sun'], ['moon', '🌙', 'Moon'], ['rainbow', '🌈', 'Rainbow'], ['unicorn', '🦄', 'Unicorn'],
+  ['rocket', '🚀', 'Rocket'], ['robot', '🤖', 'Robot'], ['cat', '🐱', 'Cat'], ['dog', '🐶', 'Dog'],
+  ['teddy', '🧸', 'Teddy bear'], ['dinosaur', '🦖', 'Dinosaur'], ['butterfly', '🦋', 'Butterfly'],
+  ['ladybug', '🐞', 'Ladybug'], ['bee', '🐝', 'Bee'], ['fish', '🐟', 'Fish'], ['octopus', '🐙', 'Octopus'],
+  ['car', '🚗', 'Car'], ['train', '🚂', 'Train'], ['plane', '✈️', 'Plane'], ['football', '⚽', 'Football'],
+  ['basketball', '🏀', 'Basketball']
+].map(([id, emoji, name, free]) => ({ id, emoji, name, free: !!free }));
+const BACKGROUNDS = [
+  ['white', '#FFFFFF', 'White', true], ['blue', '#D9ECFF', 'Light blue', true],
+  ['green', '#DFF5E3', 'Green'], ['yellow', '#FFF3C4', 'Yellow'], ['pink', '#FFE0EC', 'Pink'],
+  ['purple', '#EADDFF', 'Purple'], ['grey', '#E9EAEE', 'Grey'], ['navy', '#1E2A44', 'Navy', false, true]
+].map(([id, color, name, free, dark]) => ({ id, color, name, free: !!free, dark: !!dark }));
+const REWARDS = [
+  ['🎁', 'Gift'], ['🍦', 'Ice cream'], ['🍪', 'Cookie'], ['🍬', 'Candy'], ['🍫', 'Chocolate'], ['🧁', 'Cupcake'],
+  ['🍩', 'Donut'], ['🍭', 'Lollipop'], ['🍿', 'Popcorn'], ['🍎', 'Apple'], ['🧸', 'Teddy bear'], ['🧩', 'Puzzle'],
+  ['🤖', 'Robot'], ['🏠', 'Home'], ['🚗', 'Car ride'], ['📱', 'Phone'], ['📺', 'TV'], ['🎮', 'Video game'],
+  ['🕹️', 'Joystick'], ['🖥️', 'Computer'], ['▶️', 'Play video'], ['🎬', 'Movie'], ['🎵', 'Music'], ['🛝', 'Playground slide'],
+  ['🚲', 'Bike'], ['🛴', 'Scooter'], ['🌳', 'Park'], ['🦁', 'Zoo'], ['⚽', 'Football'], ['🏊', 'Swimming'],
+  ['🛹', 'Skateboard'], ['🐶', 'Dog'], ['🐱', 'Cat'], ['🐹', 'Hamster'], ['🐠', 'Fish'], ['🎾', 'Tennis'],
+  ['🎨', 'Painting'], ['📚', 'Books'], ['🎈', 'Balloon'], ['🎉', 'Party'], ['🧃', 'Juice'], ['🍕', 'Pizza'],
+  ['🍓', 'Strawberry'], ['🍌', 'Banana'], ['🥤', 'Drink'], ['🎧', 'Headphones'], ['🎹', 'Piano'], ['🥁', 'Drums'],
+  ['🪁', 'Kite'], ['🏖️', 'Beach'], ['🎠', 'Carousel'], ['🎢', 'Roller coaster'], ['🚂', 'Train'], ['✈️', 'Plane'],
+  ['🚀', 'Rocket'], ['🦄', 'Unicorn'], ['🐢', 'Turtle'], ['🐰', 'Rabbit'], ['🦊', 'Fox'], ['🐻', 'Bear']
+].map(([emoji, name]) => ({ emoji, name }));
+const freeIcon = e => ICONS.some(i => i.emoji === e && i.free);
+const bgById = id => BACKGROUNDS.find(b => b.id === id);
+const freeBg = id => { const b = bgById(id); return !!(b && b.free); };
 const TITLE_MAX = 40;
 
 const defaults = () => ({
@@ -62,9 +94,9 @@ function sanitize(raw) {
   if (!raw || typeof raw !== 'object') return m;
   if (SLOT_COUNTS.includes(raw.slots)) m.slots = raw.slots;
   if (typeof raw.title === 'string') m.title = raw.title.trim().slice(0, TITLE_MAX);
-  if (typeof raw.icon === 'string' && raw.icon && raw.icon.length <= 8) m.icon = raw.icon;
+  if (typeof raw.icon === 'string' && freeIcon(raw.icon)) m.icon = raw.icon; // a locked icon is never restored
   if (typeof raw.reward === 'string' && raw.reward && raw.reward.length <= 8) m.reward = raw.reward;
-  if (typeof raw.background === 'string' && raw.background.length <= 24) m.background = raw.background;
+  if (typeof raw.background === 'string' && freeBg(raw.background)) m.background = raw.background;
   if (typeof raw.sound === 'boolean') m.sound = raw.sound;
   if (Array.isArray(raw.filled)) {
     m.filled = [...new Set(raw.filled.filter(i => Number.isInteger(i) && i >= 0 && i < m.slots))].sort((a, b) => a - b);
@@ -154,8 +186,13 @@ function renderSlots() {
 function render() {
   if (titleEl) titleEl.textContent = model.title;
   if (rewardEl) { rewardEl.textContent = model.reward; rewardEl.setAttribute('aria-label', `Reward: ${model.reward}`); }
-  if (stage) stage.setAttribute('data-bg', BACKGROUNDS[model.background] ? model.background : 'white');
+  if (stage) {
+    const bg = freeBg(model.background) ? bgById(model.background) : bgById('white');
+    stage.setAttribute('data-bg', bg.id);
+    stage.classList.toggle('is-dark', !!bg.dark);
+  }
   renderSlots();
+  syncPanel();
 }
 
 /* ---------------- tokens ---------------- */
@@ -197,7 +234,9 @@ function unfill(i) {
   if (completing && model.filled.length < model.slots) { completing = false; clearTimeout(completeTimer); }
 }
 
+let sessionStart = 0; // first tap on a slot (in memory only)
 function tapSlot(i) {
+  if (!sessionStart) sessionStart = Date.now();
   if (model.filled.includes(i)) unfill(i); else fill(i);
 }
 
@@ -261,7 +300,7 @@ export function setSlots(n) {
   save(); render();
 }
 export function setIcon(e) {
-  if (typeof e !== 'string' || !e || e.length > 8) return;
+  if (!freeIcon(e)) return; // locked icons cannot be selected
   model.icon = e; save(); render();
 }
 export function setReward(e) {
@@ -272,11 +311,11 @@ export function setTitle(s) {
   model.title = String(s == null ? '' : s).trim().slice(0, TITLE_MAX); save(); render();
 }
 export function setBackground(id) {
-  if (!BACKGROUNDS[id]) return; // locked / unknown backgrounds are ignored until T3
+  if (!freeBg(id)) return; // locked / unknown backgrounds cannot be selected
   model.background = id; save(); render();
 }
 export function setSound(on) {
-  model.sound = !!on; save();
+  model.sound = !!on; save(); syncPanel();
 }
 export function resetTokens() {
   model.filled = [];
@@ -300,6 +339,7 @@ export function openPanel() {
   stage.classList.add('is-settings');
   panel.setAttribute('aria-hidden', 'false');
   if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'true');
+  maybeShowFeedback();
   const first = panel.querySelector(FOCUSABLE);
   if (first) first.focus();
 }
@@ -324,6 +364,174 @@ function trapFocus(ev) {
   } else if (!ev.shiftKey && document.activeElement === last) {
     ev.preventDefault(); first.focus();
   }
+}
+
+
+/* =====================================================================
+   Settings panel content (T3): grids, controls, locked items, interest card, feedback
+   ===================================================================== */
+const panelBody = document.getElementById('tb-panel-body');
+const LOCK_SVG = '<span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span>';
+let settingSignal = what => signal('setting-change', { what });
+
+function thumb({ kind, id, label, free, emoji, color }) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'tb-thumb' + (kind === 'bg' ? ' tb-thumb-bg' : '') + (free ? '' : ' is-locked');
+  b.dataset.kind = kind; b.dataset.id = id;
+  b.setAttribute('aria-pressed', 'false');
+  b.setAttribute('aria-label', free ? label : `${label}, locked`);
+  if (kind === 'bg') b.style.setProperty('--c', color);
+  else b.innerHTML = `<span class="tb-thumb-img">${emoji}</span>`;
+  if (!free) b.insertAdjacentHTML('beforeend', LOCK_SVG);
+  return b;
+}
+
+function buildPanel() {
+  if (!panelBody) return;
+  const icons = document.getElementById('tb-icons');
+  const bgs = document.getElementById('tb-bgs');
+  const rewards = document.getElementById('tb-rewards');
+  if (icons) icons.replaceChildren(...ICONS.map(i => thumb({ kind: 'icon', id: i.id, label: i.name, free: i.free, emoji: i.emoji })));
+  if (bgs) bgs.replaceChildren(...BACKGROUNDS.map(b => thumb({ kind: 'bg', id: b.id, label: b.name, free: b.free, color: b.color })));
+  if (rewards) rewards.replaceChildren(...REWARDS.map((r, n) => thumb({ kind: 'reward', id: String(n), label: r.name, free: true, emoji: r.emoji })));
+}
+
+/** Panel controls reflect the model (called by render(); locked items are never shown selected). */
+function syncPanel() {
+  if (!panelBody) return;
+  const input = document.getElementById('tb-title-input');
+  if (input && document.activeElement !== input) input.value = model.title;
+  const iconId = (ICONS.find(i => i.emoji === model.icon) || ICONS[0]).id;
+  panelBody.querySelectorAll('.tb-thumb[data-kind="icon"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === iconId ? 'true' : 'false'));
+  panelBody.querySelectorAll('.tb-thumb[data-kind="bg"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === model.background ? 'true' : 'false'));
+  const rewardIdx = REWARDS.findIndex(r => r.emoji === model.reward);
+  panelBody.querySelectorAll('.tb-thumb[data-kind="reward"]').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.id) === rewardIdx ? 'true' : 'false'));
+  panelBody.querySelectorAll('input[name="tb-slots"]').forEach(r => { r.checked = Number(r.value) === model.slots; });
+  const sound = document.getElementById('tb-sound');
+  if (sound) { sound.checked = !!model.sound; sound.setAttribute('aria-checked', model.sound ? 'true' : 'false'); }
+}
+
+function nudge(btn) {
+  btn.classList.add('is-nudge');
+  setTimeout(() => btn.classList.remove('is-nudge'), 700);
+}
+
+/** Show the interest card inside the panel and scroll the PANEL (never the page) to it. */
+function revealInterest() {
+  const card = document.getElementById('tb-interest');
+  if (!card || !panelBody) return;
+  card.hidden = false;
+  const top = Math.max(0, card.offsetTop - 12);
+  try { panelBody.scrollTo({ top, behavior: reducedMotion() ? 'auto' : 'smooth' }); }
+  catch (e) { panelBody.scrollTop = top; }
+}
+
+function onLockedTap(btn) {
+  nudge(btn);
+  revealInterest();
+  signal('pro-click', { item: (btn.dataset.kind === 'bg' ? 'bg-' : 'token-') + btn.dataset.id, from: 'panel' });
+}
+
+function onInterest(btn) {
+  if (btn.disabled) return;
+  signal('pro-click', { item: 'interest', from: btn.dataset.interest === 'card' ? 'card' : 'panel' });
+  btn.textContent = 'Thanks — counted!';
+  btn.disabled = true;
+}
+
+function wirePanel() {
+  if (!panelBody) return;
+  buildPanel();
+  panelBody.addEventListener('click', ev => {
+    const t = ev.target && ev.target.closest ? ev.target.closest('.tb-thumb, [data-interest], [data-fb]') : null;
+    if (!t) return;
+    if (t.hasAttribute('data-fb')) { onFeedback(t.getAttribute('data-fb')); return; }
+    if (t.hasAttribute('data-interest')) { onInterest(t); return; }
+    if (t.classList.contains('is-locked')) { onLockedTap(t); return; }
+    const id = t.dataset.id;
+    if (t.dataset.kind === 'icon') { const i = ICONS.find(x => x.id === id); if (i && i.emoji !== model.icon) { setIcon(i.emoji); settingSignal('icon'); } }
+    else if (t.dataset.kind === 'bg') { if (id !== model.background) { setBackground(id); settingSignal('background'); } }
+    else if (t.dataset.kind === 'reward') { const r = REWARDS[Number(id)]; if (r && r.emoji !== model.reward) { setReward(r.emoji); settingSignal('reward'); } }
+  });
+  const input = document.getElementById('tb-title-input');
+  if (input) {
+    input.addEventListener('input', () => setTitle(input.value));
+    input.addEventListener('change', () => settingSignal('title')); // once per edit, never the text
+  }
+  panelBody.querySelectorAll('input[name="tb-slots"]').forEach(r => r.addEventListener('change', () => {
+    const n = Number(r.value);
+    if (r.checked && n !== model.slots) { setSlots(n); settingSignal('slots'); }
+  }));
+  const sound = document.getElementById('tb-sound');
+  if (sound) sound.addEventListener('change', () => {
+    setSound(sound.checked);
+    showStatus(model.sound ? 'Sound on' : 'Sound off');
+    settingSignal('sound');
+  });
+}
+
+/* ---- "I'm interested" card below the fold (#pro-card) + pro-view ---- */
+function wireProCard() {
+  const card = document.getElementById('pro-card');
+  if (!card) return;
+  const btn = card.querySelector('[data-interest]');
+  if (btn) btn.addEventListener('click', () => onInterest(btn));
+  if (typeof IntersectionObserver !== 'function') return;
+  let seen = false; // once per page load
+  try {
+    const io = new IntersectionObserver(entries => {
+      if (!seen && entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.5)) {
+        seen = true;
+        io.disconnect();
+        signal('pro-view', {});
+      }
+    }, { threshold: 0.5 });
+    io.observe(card);
+  } catch (e) { /* ignore */ }
+}
+
+/* ---- feedback thumbs ---- */
+const FEEDBACK_KEY = 'tb-feedback';
+const FEEDBACK_DAYS = 30;
+const FEEDBACK_MIN_MS = 2 * 60 * 1000;
+let feedbackTimer = 0;
+
+function minutesBucket(ms) {
+  const m = ms / 60000;
+  return m < 1 ? '<1' : m < 5 ? '1-5' : m < 15 ? '5-15' : m < 30 ? '15-30' : '30+';
+}
+function feedbackRecent() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || 'null');
+    return !!(v && typeof v.ts === 'number' && Date.now() - v.ts < FEEDBACK_DAYS * 86400000);
+  } catch (e) { return false; }
+}
+function storeFeedback() {
+  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify({ ts: Date.now() })); } catch (e) { /* ignore */ }
+}
+function maybeShowFeedback() {
+  const line = document.getElementById('tb-feedback');
+  if (!line) return;
+  const eligible = sessionStart && (Date.now() - sessionStart) >= FEEDBACK_MIN_MS && !feedbackRecent();
+  line.hidden = !eligible;
+}
+function onFeedback(action) {
+  const line = document.getElementById('tb-feedback');
+  if (!line) return;
+  if (action === 'close') { storeFeedback(); line.hidden = true; return; }
+  const vote = action === 'up' ? 'up' : 'down';
+  signal('feedback', { vote, minutes: minutesBucket(sessionStart ? Date.now() - sessionStart : 0) });
+  storeFeedback();
+  const q = document.getElementById('tb-feedback-q');
+  line.querySelectorAll('[data-fb]').forEach(b => { b.hidden = true; });
+  if (q) q.textContent = 'Thanks!';
+  clearTimeout(feedbackTimer);
+  feedbackTimer = setTimeout(() => {
+    line.hidden = true;
+    if (q) q.textContent = 'Was it useful today?';
+    line.querySelectorAll('[data-fb]').forEach(b => { b.hidden = false; });
+  }, 3000);
 }
 
 /* =====================================================================
@@ -404,9 +612,11 @@ function onFsChange() { setFsLabel(nativeActive()); }
    Wiring
    ===================================================================== */
 if (stage) {
-  // Board: restore before first render, then render from the model.
+  // Board: restore before first render; panel grids exist before render() so syncPanel() can mark them.
   load();
+  wirePanel();
   render();
+  wireProCard();
 
   if (slotsEl) {
     slotsEl.addEventListener('click', ev => {
@@ -465,7 +675,9 @@ if (stage) {
         try { v = window.prompt(`Board title (max ${TITLE_MAX} characters)`, model.title); } catch (e) { v = null; }
         if (v !== null) setTitle(v);
       },
-      bgBlue() { setBackground('blue'); }, bgWhite() { setBackground('white'); }
+      bgBlue() { setBackground('blue'); }, bgWhite() { setBackground('white'); },
+      sessionPlus3() { sessionStart = (sessionStart || Date.now()) - 3 * 60 * 1000; showStatus('Session start moved back 3 min'); },
+      setSessionStart(ts) { sessionStart = ts; }
     });
   }
 }
