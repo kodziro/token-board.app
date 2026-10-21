@@ -40,9 +40,8 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
 .tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 12px 64px;background:#FFFFFF;overflow:hidden}
 .tb-heading{text-align:center;margin:0 0 22px;max-width:100%}
-.tb-kicker{display:block;font-family:"Nunito",system-ui,sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;line-height:1.5;min-height:1.65rem;color:var(--tb-navy)}
-.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.6rem,5vw,4.6rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
-.tb-stage.is-dark .tb-kicker,.tb-stage.is-dark .tb-title{color:#fff}
+.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,4.2vw,3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
+.tb-stage.is-dark .tb-title{color:#fff}
 .tb-board-wrap{position:relative;width:100%;max-width:560px}
 .tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
 .tb-board-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;min-height:72px}
@@ -51,6 +50,10 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-slots{display:grid;grid-template-columns:repeat(5,minmax(56px,1fr));justify-content:center;gap:12px;margin:0;padding:0;list-style:none}
 .tb-slot{aspect-ratio:1/1;width:100%;min-width:0;border-radius:50%;border:2px solid transparent;background:var(--tb-slot);font:inherit;font-size:2rem;line-height:1;color:inherit;cursor:pointer;padding:0;margin:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .tb-slot.is-filled{background:#FFFFFF;border-color:var(--tb-ring)}
+/* token goal > 10: tool.js sets --cols / --s / --gap and the classes is-many (stage) + is-fit (slots) */
+.tb-stage.is-many .tb-board-wrap{max-width:760px}
+.tb-slots.is-fit{grid-template-columns:repeat(var(--cols,5),var(--s,48px));gap:var(--gap,8px)}
+.tb-slots.is-fit .tb-slot{width:var(--s,48px);font-size:calc(var(--s,48px) * .55)}
 @media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
 .tb-skip{position:absolute;left:12px;top:-200px;z-index:100;padding:10px 18px;border-radius:999px;background:var(--tb-navy);color:#fff;font-weight:800;text-decoration:none}
 .tb-skip:focus{top:12px}
@@ -68,14 +71,14 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
 .tb-privacy:hover{opacity:1;text-decoration:underline}
 .tb-stage.is-dark .tb-privacy{color:#fff}
-.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:340px;max-width:100%;visibility:hidden;transform:translateX(100%)}
+.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:360px;max-width:100%;visibility:hidden;transform:translateX(100%)}
 .tb-complete{display:none}
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261019i">
-<link rel="stylesheet" href="tool.css?v=20261019i" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261019i"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261021l">
+<link rel="stylesheet" href="tool.css?v=20261021l" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261021l"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -95,11 +98,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     "@type": "Person",
     "name": "Natalia Jakubczyk-Gajewska"
   },
-  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick 3, 5 or 10 slots, a token icon and a reward; nothing is uploaded and no account is needed.",
+  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick any token goal from 3 to 100, a token icon and a reward; nothing is uploaded and no account is needed.",
   "featureList": [
-    "3, 5 or 10 token slots",
+    "Token goal from 3 to 100",
     "Emoji tokens: tap a slot to earn, tap again to remove",
-    "Reward picker with 60 visual rewards",
+    "Visual reward picker",
     "Celebration with confetti when the board is full",
     "Works on any screen: laptop, Chromebook, iPad, phone, interactive whiteboard, or shared in Zoom / Google Meet",
     "Nothing is uploaded: the board stays in the browser, no account, no ads"
@@ -154,7 +157,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "How many tokens should I start with?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Use the 3 / 5 / 10 control in the settings (⚙ → Slots): the first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
+        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal in the settings (⚙ → Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
       }
     },
     {
@@ -186,7 +189,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "Is it free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The online token board is free, with no account and no ads. More token icons and backgrounds may be added later: tap a locked one in the settings to tell us you are interested."
+        "text": "Yes. The online token board is free, with no account and no ads: any token goal from 3 to 100, plus a free set of token icons, backgrounds and rewards. Some extras are locked (more icons, backgrounds, rewards and your own photos); you can unlock them all free for a day, as often as you like, while we test."
       }
     },
     {
@@ -194,7 +197,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "Is anything uploaded?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Nothing is uploaded. The board, its title and settings are stored only in this browser (localStorage). There are no accounts and no ad tracking; anonymous usage statistics only."
+        "text": "Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser."
       }
     }
   ]
@@ -203,7 +206,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js"></script>
 <link rel="modulepreload" href="assets/tool-signals.js?v=20261019i">
-<script type="module" src="tool.js?v=20261019i"></script>
+<script type="module" src="tool.js?v=20261021l"></script>
 </head>
 <body>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -223,14 +226,14 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   <button type="button" class="tb-stage-btn tb-btn-fs" data-tb="fullscreen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tb-btn-fs-label">Fullscreen</span></button>
   <button type="button" class="tb-stage-btn tb-btn-settings" data-tb="settings" aria-controls="tb-panel" aria-expanded="false" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 
-  <h1 class="tb-heading"><span class="tb-kicker">Free online</span><span class="tb-title">Token Board for Kids</span></h1>
+  <h1 class="tb-heading"><span class="tb-title">Free Online Token Board for Kids</span></h1>
 
   <div class="tb-board-wrap">
     <div class="tb-status" id="tb-status" role="status" aria-live="polite"></div>
     <div class="tb-board" id="tb-board">
       <div class="tb-board-top">
         <p class="tb-board-title" id="tb-board-title">My board</p>
-        <div class="tb-reward" id="tb-reward" role="img" aria-label="Reward: teddy bear">🧸</div>
+        <div class="tb-reward" id="tb-reward" role="img" aria-label="Reward: gift">🎁</div>
       </div>
       <div class="tb-slots" id="tb-slots" role="group" aria-label="Token slots">
         <button type="button" class="tb-slot" data-index="0" aria-label="Token 1 of 10" aria-pressed="false"></button>
@@ -262,36 +265,52 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
         <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
       </div>
+      <p class="tb-freeday" id="tb-freeday" hidden>✨ All extras unlocked until midnight.</p>
+      <div class="tb-ask" id="tb-ask" hidden>
+        <button type="button" class="tb-ask-x" data-ask="close" aria-label="Close the question">×</button>
+        <p class="tb-ask-q">Quick question: would you pay to keep extras unlocked?</p>
+        <div class="tb-ask-btns">
+          <button type="button" class="tb-ask-btn" data-ask="yes">Yes</button>
+          <button type="button" class="tb-ask-btn" data-ask="no">No</button>
+        </div>
+        <p class="tb-ask-thanks" id="tb-ask-thanks" role="status" aria-live="polite"></p>
+      </div>
       <section class="tb-set">
-        <label class="tb-set-label" for="tb-title-input">Title</label>
+        <label class="tb-set-label" for="tb-title-input">Board name</label>
         <input class="tb-input" id="tb-title-input" type="text" maxlength="40" autocomplete="off" spellcheck="false">
       </section>
       <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
-        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
-      </section>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
-        <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
-      </section>
-      <p class="tb-legend">🔒 = locked — tap one to tell us you're interested</p>
-      <div class="tb-interest" id="tb-interest" hidden>
-        <p>Want more token icons and backgrounds? If enough teachers ask, we'll build them.</p>
-        <button type="button" class="tb-pill" data-interest="panel">I'm interested</button>
-      </div>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-slots-label">Slots</h3>
-        <div class="tb-seg" role="radiogroup" aria-labelledby="tb-slots-label">
+        <h3 class="tb-set-label" id="tb-goal-label">Token goal</h3>
+        <div class="tb-seg" role="radiogroup" aria-labelledby="tb-goal-label">
           <label class="tb-seg-item"><input type="radio" name="tb-slots" value="3"><span>3</span></label>
           <label class="tb-seg-item"><input type="radio" name="tb-slots" value="5"><span>5</span></label>
           <label class="tb-seg-item"><input type="radio" name="tb-slots" value="10"><span>10</span></label>
         </div>
+        <div class="tb-stepper">
+          <button type="button" class="tb-step-btn" data-goal="-1" aria-label="One token less" aria-controls="tb-goal-input">−</button>
+          <input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100">
+          <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
+          <span class="tb-goal-range" aria-hidden="true">3–100</span>
+        </div>
+      </section>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
+        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
+        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+      </section>
+      <section class="tb-set">
+        <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
+        <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
+        <p class="tb-photo-msg" id="tb-photo-msg-background" role="status" aria-live="polite"></p>
+        <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
-        <div class="tb-grid tb-grid-scroll" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
+        <div class="tb-grid" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
+        <p class="tb-photo-msg" id="tb-photo-msg-reward" role="status" aria-live="polite"></p>
+        <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
       </section>
-      <section class="tb-set tb-set-row">
+      <section class="tb-set">
         <label class="tb-switch" for="tb-sound">
           <span class="tb-set-label">Sound</span>
           <input type="checkbox" id="tb-sound" role="switch">
@@ -304,9 +323,23 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 
   <div class="tb-complete" id="tb-complete" role="dialog" aria-modal="true" aria-labelledby="tb-complete-title" aria-hidden="true">
     <div class="tb-confetti" aria-hidden="true"></div>
+    <div class="tb-complete-reward" id="tb-complete-reward" aria-hidden="true"></div>
     <p class="tb-complete-title" id="tb-complete-title">You did it!</p>
     <p class="tb-complete-sub">Goal reached</p>
     <button type="button" class="tb-hooray" data-tb="hooray">Hooray!</button>
+  </div>
+  <input type="file" accept="image/*" id="tb-photo-input" class="tb-sr" tabindex="-1" aria-hidden="true">
+  <div class="tb-modal" id="tb-unlock" role="dialog" aria-modal="true" aria-labelledby="tb-unlock-title" aria-describedby="tb-unlock-text" hidden>
+    <div class="tb-modal-box">
+      <p class="tb-modal-preview" aria-hidden="true"><span>🦄</span><span>🚀</span><span>🌈</span><span>🦖</span><span>🎠</span><span>🖼️</span></p>
+      <h2 class="tb-modal-title" id="tb-unlock-title">Try all extras free for today</h2>
+      <p id="tb-unlock-text">All icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
+      <div class="tb-card-actions">
+        <button type="button" class="tb-unlock-go" data-unlock="go"><span aria-hidden="true">✨</span> Unlock free for today</button>
+        <button type="button" class="tb-link" data-unlock="skip">Not now</button>
+      </div>
+      <a class="tb-modal-app" data-unlock="app" data-td-position="interest-modal" href="https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&amp;ct=webnew&amp;mt=8" rel="noopener" hidden>Also on iPhone, iPad &amp; Mac →</a>
+    </div>
   </div>
 </section>
 
@@ -328,7 +361,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-tokens">
     <summary>How many tokens should I start with?</summary>
-    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Use the 3 / 5 / 10 control in the settings (⚙ → Slots): the first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
+    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal in the settings (⚙ → Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
   </details>
   <details id="faq-reward">
     <summary>How do I pick a reward (reinforcer)?</summary>
@@ -344,11 +377,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-free">
     <summary>Is it free?</summary>
-    <p>Yes. The online token board is free, with no account and no ads. More token icons and backgrounds may be added later: tap a locked one in the settings to tell us you are interested.</p>
+    <p>Yes. The online token board is free, with no account and no ads: any token goal from 3 to 100, plus a free set of token icons, backgrounds and rewards. Some extras are locked (more icons, backgrounds, rewards and your own photos); you can unlock them all free for a day, as often as you like, while we test.</p>
   </details>
   <details id="faq-privacy">
     <summary>Is anything uploaded?</summary>
-    <p>Nothing is uploaded. The board, its title and settings are stored only in this browser (localStorage). There are no accounts and no ad tracking; anonymous usage statistics only.</p>
+    <p>Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser.</p>
   </details>
 </section>
 
@@ -357,7 +390,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   <div class="tb-app-grid">
     <div class="tb-app-intro">
       <img class="tb-app-icon" src="assets/icon-160.jpg" alt="Token Board: ABA Reward Chart app icon" width="80" height="80" loading="lazy">
-      <p><strong>Token Board: ABA Reward Chart</strong> is the same idea as an app for iPhone, iPad and Mac. The web board is the quick version; the app adds up to 100 tokens, many saved boards and photo rewards.</p>
+      <p><strong>Token Board: ABA Reward Chart</strong> is the same idea as an app for iPhone, iPad and Mac. The web board is the quick version; the app adds many saved boards, a board per child, and more icons and rewards.</p>
       <p class="tb-app-ctas"><a class="tb-btn-store" data-td-position="app-section" href="https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&amp;ct=webnew&amp;mt=8" rel="noopener">Download on the App Store</a> <a class="tb-app-more" href="app.html">More about the app →</a></p>
     </div>
     <dl class="tb-facts">
@@ -374,9 +407,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 </section>
 
 <section id="interest" class="tb-section tb-wrap">
-  <div class="tb-interest tb-interest-page" id="pro-card">
-    <p>Want more token icons and backgrounds? If enough teachers ask, we'll build them.</p>
-    <button type="button" class="tb-pill" data-interest="card">I'm interested</button>
+  <div class="tb-card tb-interest-page" id="pro-card">
+    <p>Most of the board is free. Some extras are locked; you can unlock them all free for a day, as often as you like, while we test.</p>
+    <div class="tb-card-actions">
+      <button type="button" class="tb-pill" data-unlock-open>Try all extras free for today</button>
+    </div>
   </div>
 </section>
 
@@ -511,7 +546,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       </div>
     </div>
     <div class="foot-note">
-      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-19">October 19, 2026</time>.</p>
+      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-21">October 21, 2026</time>.</p>
     </div>
   </div>
 </footer>
