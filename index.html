@@ -38,9 +38,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-brand-sub{font-weight:500;opacity:.8}
 .tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
 .tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
-.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 12px 64px;background:#FFFFFF;overflow:hidden}
-.tb-heading{text-align:center;margin:0 0 22px;max-width:100%}
-.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,4.2vw,3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
+.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 12px 64px;background:#FFFFFF;overflow:hidden}
+.tb-heading{text-align:center;margin:0 0 48px;max-width:100%}
+.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,min(4.2vw,6vh),3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
 .tb-stage.is-dark .tb-title{color:#fff}
 .tb-board-wrap{position:relative;width:100%;max-width:560px}
 .tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
@@ -63,9 +63,19 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.55);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
 .tb-stage-btn:hover{background:rgba(0,0,0,.65)}
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
-.tb-btn-settings{right:14px;width:46px;height:46px;border-radius:50%;padding:0}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Free extras today = light */
+.tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
+.tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
+.tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
+.tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
+.tb-act-style>span{font-size:1.15em}
+.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
+.tb-act-extras:hover{background:#EEF5FF}
+.tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
+.tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
+.tb-empty-hint[hidden]{display:none}
 .tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
 .tb-status.is-visible{opacity:1}
 .tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
@@ -76,9 +86,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261021l">
-<link rel="stylesheet" href="tool.css?v=20261021l" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261021l"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261023c">
+<link rel="stylesheet" href="tool.css?v=20261023c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261023c"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -157,7 +167,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "How many tokens should I start with?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal in the settings (⚙ → Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
+        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
       }
     },
     {
@@ -206,7 +216,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js"></script>
 <link rel="modulepreload" href="assets/tool-signals.js?v=20261019i">
-<script type="module" src="tool.js?v=20261021l"></script>
+<script type="module" src="tool.js?v=20261023c"></script>
 </head>
 <body>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -224,7 +234,6 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 
 <section id="board" class="tb-stage" data-tb-stage aria-label="Token board">
   <button type="button" class="tb-stage-btn tb-btn-fs" data-tb="fullscreen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tb-btn-fs-label">Fullscreen</span></button>
-  <button type="button" class="tb-stage-btn tb-btn-settings" data-tb="settings" aria-controls="tb-panel" aria-expanded="false" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 
   <h1 class="tb-heading"><span class="tb-title">Free Online Token Board for Kids</span></h1>
 
@@ -232,8 +241,8 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     <div class="tb-status" id="tb-status" role="status" aria-live="polite"></div>
     <div class="tb-board" id="tb-board">
       <div class="tb-board-top">
-        <p class="tb-board-title" id="tb-board-title">My board</p>
-        <div class="tb-reward" id="tb-reward" role="img" aria-label="Reward: gift">🎁</div>
+        <p class="tb-board-title" id="tb-board-title">I am working for</p>
+        <div class="tb-reward" id="tb-reward" role="button" tabindex="0" aria-controls="tb-panel" aria-label="Reward: gift. Tap to change">🎁</div>
       </div>
       <div class="tb-slots" id="tb-slots" role="group" aria-label="Token slots">
         <button type="button" class="tb-slot" data-index="0" aria-label="Token 1 of 10" aria-pressed="false"></button>
@@ -247,24 +256,23 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         <button type="button" class="tb-slot" data-index="8" aria-label="Token 9 of 10" aria-pressed="false"></button>
         <button type="button" class="tb-slot" data-index="9" aria-label="Token 10 of 10" aria-pressed="false"></button>
       </div>
+      <p class="tb-empty-hint" id="tb-empty-hint">Tap a circle to add a token</p>
       <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
+    </div>
+    <div class="tb-actions" id="tb-actions">
+      <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
+      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Free extras today</span></button>
     </div>
   </div>
 
   <a class="tb-privacy" href="#faq-privacy">🔒 Privacy: Nothing is uploaded — your board stays on this device.</a>
 
-  <aside id="tb-panel" class="tb-panel" aria-label="Settings" aria-hidden="true">
+  <aside id="tb-panel" class="tb-panel" aria-label="Style your board" aria-hidden="true">
     <div class="tb-panel-head">
-      <h2 class="tb-panel-title" id="tb-panel-title">Settings</h2>
-      <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close settings">×</button>
+      <h2 class="tb-panel-title" id="tb-panel-title">Style your board</h2>
+      <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close the style panel">×</button>
     </div>
     <div class="tb-panel-body" id="tb-panel-body">
-      <div class="tb-feedback" id="tb-feedback" hidden>
-        <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
-        <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
-        <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
-        <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
-      </div>
       <p class="tb-freeday" id="tb-freeday" hidden>✨ All extras unlocked until midnight.</p>
       <div class="tb-ask" id="tb-ask" hidden>
         <button type="button" class="tb-ask-x" data-ask="close" aria-label="Close the question">×</button>
@@ -295,17 +303,19 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
-        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
         <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
+        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
         <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-background" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
+        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
         <div class="tb-grid" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-reward" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
@@ -317,6 +327,12 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
           <span class="tb-switch-track" aria-hidden="true"></span>
         </label>
       </section>
+      <div class="tb-feedback" id="tb-feedback" hidden>
+        <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
+        <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
+        <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
+        <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
+      </div>
     </div>
     <div class="tb-panel-done"><button type="button" class="tb-done" data-tb="close">Done</button></div>
   </aside>
@@ -327,6 +343,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     <p class="tb-complete-title" id="tb-complete-title">You did it!</p>
     <p class="tb-complete-sub">Goal reached</p>
     <button type="button" class="tb-hooray" data-tb="hooray">Hooray!</button>
+    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden>Make the next board special — try all extras free today</button>
   </div>
   <input type="file" accept="image/*" id="tb-photo-input" class="tb-sr" tabindex="-1" aria-hidden="true">
   <div class="tb-modal" id="tb-unlock" role="dialog" aria-modal="true" aria-labelledby="tb-unlock-title" aria-describedby="tb-unlock-text" hidden>
@@ -346,7 +363,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 <section id="how" class="tb-section tb-wrap">
   <h2>How to use the token board</h2>
   <ol class="tb-steps">
-    <li class="tb-step"><span class="tb-step-n">1</span><h3>Pick the reward</h3><p>Open the settings (⚙) and choose a reward. Tell the child what they are working for: "Ten stars, then the tablet."</p></li>
+    <li class="tb-step"><span class="tb-step-n">1</span><h3>Pick the reward</h3><p>Tap the 🎨 Style button under the board and choose a reward. Tell the child what they are working for: "Ten stars, then the tablet."</p></li>
     <li class="tb-step"><span class="tb-step-n">2</span><h3>Tap a slot for each success</h3><p>Tap any empty slot to add a token, in any order. Tapped one by mistake? Tap it again to remove it.</p></li>
     <li class="tb-step"><span class="tb-step-n">3</span><h3>Board full → give the reward</h3><p>When the last slot fills, the board says "You did it!". Give the reward, then tap "Hooray!" to reset the board.</p></li>
   </ol>
@@ -361,7 +378,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-tokens">
     <summary>How many tokens should I start with?</summary>
-    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal in the settings (⚙ → Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
+    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
   </details>
   <details id="faq-reward">
     <summary>How do I pick a reward (reinforcer)?</summary>
@@ -546,7 +563,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       </div>
     </div>
     <div class="foot-note">
-      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-21">October 21, 2026</time>.</p>
+      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-23">October 23, 2026</time>.</p>
     </div>
   </div>
 </footer>

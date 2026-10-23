@@ -11,7 +11,7 @@
     (FREE_DAYS), free and renewable without limit (localStorage tb-tried {until, nth, used, asked}). A board
     keeps a locked item until the user changes it (never break a board in use). From the 2nd free day on, the
     panel asks once per free day "would you pay…?" (Yes / No / ×). Signals: try-today {item, group, nth},
-    try-use {item, group}, try-skip {item}, would-pay {answer, nth, os, answerNo, lang}, appstore-click
+    try-use {item, group}, try-skip {item}, would-pay {answer, nth, os, answerNo, lang, unlockFrom}, appstore-click
     {position:"interest-modal"} (appstore-click.js), board-complete {slots, tried}.
   Own photo (2026-10-21): the 🖼️ photo tile is the first tile in Reward and Background, locked like the other
     extras. The photo is read and shrunk on the device only (canvas → JPEG 0.8, reward ≤ 512 px, background
@@ -19,6 +19,19 @@
     URL). The original file is never stored and nothing is uploaded. Model flags rewardPhoto / bgPhoto. Signals:
     photo-set {kind}, photo-remove {kind}, photo-error {kind, reason} (never the image, its name or size).
 
+  Easier to find (2026-10-23): the ⚙ corner button is gone. Under the board: "🎨 Style" (opens the panel,
+    title "Style your board") and "✨ Free extras today" (unlock modal, item/group "extras"; disabled with
+    "✨ Extras unlocked" during a free day); the row is hidden in fullscreen. A tap on the reward circle opens
+    the panel at Reward (panel body scrolls, the page does not). The board title is already editable in place,
+    so it does not open the panel. Empty-board hint "Tap a circle to add a token" until the first slot tap
+    (localStorage tb-hint). Celebration (outside a free day only): "Make the next board special — try all
+    extras free today". Signals: settings-open {from, nth, completed} once per page load (localStorage
+    tb-settings {count}); pro-click and try-today carry from "panel" | "toolbar" | "celebration" | "card".
+    ?v=20261023a.
+  Title + saved line (2026-10-23, ?v=20261023b; modal focus rings ?v=20261023c): default board title "I am working for" (was "My board"; a stored
+    "My board" is shown as the new default, any other title stays). The hint line becomes "Your board is saved on
+    this device" after the first slot tap and on later visits (hidden in fullscreen). Focus rings on the pills, the
+    reward circle, every panel button (× too) and the unlock modal buttons + link only for keyboard use (html.tb-pointer after a mouse / touch press, removed on any key).
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
   T7 (2026-10-19): a11y — #tb-count (visually hidden, aria-live) says "N of M earned" on every fill/remove;
     celebration overlay keeps focus on Hooray (Tab trapped) and Escape = Hooray; the settings panel is
@@ -41,7 +54,8 @@
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
   Nothing personal is sent. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown),
-  tb-feedback {ts}, tb-visits {count, first}, tb-tried {until, nth, used, asked}. IndexedDB: tb-photos (store photos: reward, background).
+  tb-feedback {ts}, tb-visits {count, first}, tb-tried {until, nth, used, asked}, tb-hint ("1" = empty-board hint
+  done), tb-settings {count} (page loads with a panel open). IndexedDB: tb-photos (store photos: reward, background).
 */
 
 import { send } from './assets/tool-signals.js?v=20261019i';
@@ -118,9 +132,10 @@ const bgById = id => BACKGROUNDS.find(b => b.id === id);
 const rewardByEmoji = e => REWARDS.find(r => r.emoji === e);
 const isFreeLook = () => !!(freeIcon(model.icon) && (bgById(model.background) || {}).free && (rewardByEmoji(model.reward) || {}).free && !model.rewardPhoto && !model.bgPhoto);
 const TITLE_MAX = 40;
+const DEFAULT_TITLE = 'I am working for'; // 2026-10-23; was "My board" (migrated in sanitize)
 
 const defaults = () => ({
-  slots: 10, filled: [], title: 'My board', icon: '⭐', reward: DEFAULT_REWARD, background: 'white', sound: true,
+  slots: 10, filled: [], title: DEFAULT_TITLE, icon: '⭐', reward: DEFAULT_REWARD, background: 'white', sound: true,
   rewardPhoto: false, bgPhoto: false // true = show the own photo (kept in IndexedDB) instead of reward / background
 });
 let model = defaults();
@@ -130,6 +145,7 @@ function sanitize(raw) {
   if (!raw || typeof raw !== 'object') return m;
   if (isGoal(raw.slots)) m.slots = raw.slots;
   if (typeof raw.title === 'string') m.title = raw.title.trim().slice(0, TITLE_MAX);
+  if (m.title === 'My board') m.title = DEFAULT_TITLE; // the old default; a title the user typed stays
   // Any catalog item is restored, also a locked one: a board in use (e.g. in class) keeps an item that was
   // tried for a day, or that was free before 2026-10-21, until the user picks something else.
   if (typeof raw.icon === 'string' && iconByEmoji(raw.icon)) m.icon = raw.icon;
@@ -199,6 +215,8 @@ const titleEl = document.getElementById('tb-board-title');
 const rewardEl = document.getElementById('tb-reward');
 const overlay = document.getElementById('tb-complete');
 const hoorayBtn = stage && stage.querySelector('[data-tb="hooray"]');
+const celebrateExtrasBtn = stage && stage.querySelector('[data-tb="celebrate-extras"]');
+let completedThisLoad = false; // settings-open {completed}: a board was completed in this page load
 const countEl = document.getElementById('tb-count');
 function announceCount() { if (countEl) countEl.textContent = `${model.filled.length} of ${model.slots} earned`; }
 
@@ -237,7 +255,7 @@ function render() {
     el.style.backgroundImage = rPhoto ? `url("${rPhoto}")` : '';
     el.textContent = rPhoto ? '' : model.reward;
   });
-  if (rewardEl) rewardEl.setAttribute('aria-label', rPhoto ? 'Reward: your photo' : `Reward: ${((rewardByEmoji(model.reward) || {}).name || model.reward).toLowerCase()}`);
+  if (rewardEl) rewardEl.setAttribute('aria-label', (rPhoto ? 'Reward: your photo' : `Reward: ${((rewardByEmoji(model.reward) || {}).name || model.reward).toLowerCase()}`) + '. Tap to change');
   if (stage) {
     const bPhoto = photoShown('background');
     const bg = bgById(model.background) || bgById('white');
@@ -286,10 +304,13 @@ function slotHeightBudget() {
   const heading = stage.querySelector('.tb-heading');
   const board = document.getElementById('tb-board');
   const top = board && board.querySelector('.tb-board-top');
+  const shown = el => el && el.offsetParent ? el.offsetHeight + px(el, 'marginTop', 'marginBottom') : 0; // 0 while hidden
   return stageH - px(stage, 'paddingTop', 'paddingBottom')
     - (heading && heading.offsetParent ? heading.offsetHeight + px(heading, 'marginBottom') : 0) // hidden on phones while the sheet is open
     - px(board, 'paddingTop', 'paddingBottom')
-    - (top ? top.offsetHeight + px(top, 'marginBottom') : 0) - 8;
+    - (top ? top.offsetHeight + px(top, 'marginBottom') : 0)
+    - shown(document.getElementById('tb-empty-hint'))
+    - shown(document.getElementById('tb-actions')) - 8; // hidden in fullscreen
 }
 
 /* ---------------- tokens ---------------- */
@@ -368,7 +389,25 @@ function noteTap() {
 
 function tapSlot(i) {
   noteTap();
+  hintDone();
   if (model.filled.includes(i)) unfill(i); else fill(i);
+}
+
+/* ---------------- line under the circles: "Tap a circle to add a token" until the first slot tap in this
+   browser, then "Your board is saved on this device" (rest of the page load and every later visit) ---------------- */
+const HINT_KEY = 'tb-hint';
+const HINT_TEXT = 'Tap a circle to add a token', SAVED_TEXT = 'Your board is saved on this device';
+const hintEl = document.getElementById('tb-empty-hint');
+function showHint() {
+  if (!hintEl) return;
+  let done = false;
+  try { done = localStorage.getItem(HINT_KEY) === '1'; } catch (e) { /* storage blocked: the hint until the first tap */ }
+  hintEl.hidden = false;
+  hintEl.textContent = done || model.filled.length > 0 ? SAVED_TEXT : HINT_TEXT;
+}
+function hintDone() {
+  try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* ignore */ }
+  if (hintEl) hintEl.textContent = SAVED_TEXT; // same line, same height: no refit needed
 }
 
 /* ---------------- visit counter (T4): once per page load ---------------- */
@@ -434,6 +473,8 @@ function celebrate() {
   completing = false;
   if (!stage || model.filled.length !== model.slots) return;
   buildConfetti();
+  completedThisLoad = true;
+  if (celebrateExtrasBtn) celebrateExtrasBtn.hidden = freeDayActive(); // only outside a free day
   stage.classList.add('is-complete');
   if (overlay) overlay.setAttribute('aria-hidden', 'false');
   celebrationTone();
@@ -520,8 +561,37 @@ let lastFocus = null;
 
 const isPhone = () => window.matchMedia('(max-width: 699px)').matches;
 
-export function openPanel() {
-  if (!stage || !panel || stage.classList.contains('is-settings')) return;
+/* settings-open {from, nth, completed}: once per page load (the first open); nth = page loads in this browser in
+   which the panel was opened (localStorage tb-settings {count}); completed = a board was completed before it. */
+const SETTINGS_KEY = 'tb-settings';
+let settingsOpenSent = false;
+function noteSettingsOpen(from) {
+  if (settingsOpenSent) return;
+  settingsOpenSent = true;
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); } catch (e) { v = null; }
+  const count = (v && Number.isInteger(v.count) && v.count >= 0 ? v.count : 0) + 1;
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ count })); } catch (e) { /* ignore */ }
+  signal('settings-open', { from, nth: String(count), completed: completedThisLoad ? 'yes' : 'no' });
+}
+
+/** Scroll the panel body (never the page) so a group is at the top, and focus its selected tile. */
+function showSection(name) {
+  const grid = panelBody && document.getElementById(name === 'reward' ? 'tb-rewards' : `tb-${name}`);
+  const sec = grid && grid.closest('.tb-set');
+  if (!sec) return;
+  const x = window.scrollX || 0, y = window.scrollY || 0;
+  const tile = grid.querySelector('.tb-thumb[aria-pressed="true"]') || grid.querySelector('.tb-thumb');
+  if (tile) { try { tile.focus({ preventScroll: true }); } catch (e) { tile.focus(); } }
+  panelBody.scrollTop += sec.getBoundingClientRect().top - panelBody.getBoundingClientRect().top - 8;
+  if ((window.scrollX || 0) !== x || (window.scrollY || 0) !== y) window.scrollTo(x, y); // old browsers ignore preventScroll
+}
+
+/** opts: from "button" | "reward" | "title" (settings-open), section "reward" = open at that group. */
+export function openPanel(opts) {
+  const o = opts || {};
+  if (!stage || !panel) return;
+  if (stage.classList.contains('is-settings')) { if (o.section) showSection(o.section); return; }
   lastFocus = document.activeElement;
   stage.classList.add('is-settings');
   panel.setAttribute('aria-hidden', 'false');
@@ -532,6 +602,9 @@ export function openPanel() {
   maybeShowFeedback();
   syncPanel(); // locks may have changed since the last render (local midnight)
   fitSlots();
+  noteSettingsOpen(o.from || 'button');
+  if (o.section) { showSection(o.section); return; }
+  if (panelBody) panelBody.scrollTop = 0;
   const first = panel.querySelector(FOCUSABLE);
   if (first) first.focus();
 }
@@ -576,7 +649,9 @@ const goalSignal = () => { clearTimeout(goalSignalTimer); goalSignalTimer = setT
 const FREE_DAYS = 1; // length of one free unlock in days; 1 = until tonight's local midnight
 const TRIED_KEY = 'tb-tried'; // {until: last free day "YYYY-MM-DD" (local), nth: free days used, used: items tried in this free day,
                               //  asked: nth of the free day in which the would-pay question was answered or closed,
-                              //  answers: would-pay answers given in this browser (× does not count)}
+                              //  answers: would-pay answers given in this browser (× does not count),
+                              //  unlockFrom: from of the unlock that started the current free day (2026-10-23)}
+const UNLOCK_FROM = ['panel', 'toolbar', 'celebration', 'card'];
 const GROUP = { icon: 'token', bg: 'background', reward: 'reward', 'photo-reward': 'photo-reward', 'photo-bg': 'photo-bg' };
 // = pro-click item: token-<id> | bg-<id> | reward-<id> | photo-reward | photo-bg
 const itemKey = (kind, id) => kind.startsWith('photo-') ? kind : `${kind === 'bg' ? 'bg' : kind === 'icon' ? 'token' : 'reward'}-${id}`;
@@ -586,13 +661,14 @@ function tried() {
   if (triedMem) return triedMem;
   let v = null;
   try { v = JSON.parse(localStorage.getItem(TRIED_KEY) || 'null'); } catch (e) { v = null; }
-  triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0 };
+  triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0, unlockFrom: '' };
   if (v && typeof v === 'object') {
     if (typeof v.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.until)) triedMem.until = v.until;
     if (Number.isInteger(v.nth) && v.nth >= 0) triedMem.nth = v.nth;
     if (Array.isArray(v.used)) triedMem.used = v.used.filter(x => typeof x === 'string').slice(0, 200);
     if (Number.isInteger(v.asked) && v.asked >= 0) triedMem.asked = v.asked;
     if (Number.isInteger(v.answers) && v.answers >= 0) triedMem.answers = v.answers;
+    if (UNLOCK_FROM.includes(v.unlockFrom)) triedMem.unlockFrom = v.unlockFrom;
   }
   return triedMem;
 }
@@ -600,8 +676,9 @@ function saveTried() {
   try { localStorage.setItem(TRIED_KEY, JSON.stringify(tried())); } catch (e) { /* storage blocked: this page only */ }
 }
 const freeDayActive = () => { const u = tried().until; return !!u && dateStr(new Date()) <= u; };
-function startFreeDay() {
+function startFreeDay(from) {
   const t = tried();
+  t.unlockFrom = UNLOCK_FROM.includes(from) ? from : '';
   const end = new Date();
   end.setDate(end.getDate() + FREE_DAYS - 1);
   t.until = dateStr(end); t.nth += 1; t.used = [];
@@ -933,16 +1010,21 @@ async function loadPhotos() {
 function onLockedTap(btn) {
   signal('pro-click', { item: btn.dataset.item, from: 'panel' });
   nudge(btn);
-  openUnlock(btn.dataset.item, GROUP[btn.dataset.kind], btn);
+  openUnlock(btn.dataset.item, GROUP[btn.dataset.kind], btn, null, 'panel');
+}
+/** The ✨ buttons (under the board, celebration, #pro-card): pro-click {item "extras", from}, then the modal. */
+function openExtras(from, back) {
+  signal('pro-click', { item: 'extras', from });
+  openUnlock('extras', 'extras', null, back, from);
 }
 
 /* ---- unlock modal (#tb-unlock): centred over the page and the phone sheet; role=dialog, focus trapped ---- */
 const unlockEl = document.getElementById('tb-unlock');
-let unlockFor = { item: '', group: '', tile: null, back: null };
+let unlockFor = { item: '', group: '', tile: null, back: null, from: 'panel' };
 const unlockOpen = () => !!(unlockEl && !unlockEl.hidden);
-function openUnlock(item, group, tile, back) {
+function openUnlock(item, group, tile, back, from) {
   if (!unlockEl) return;
-  unlockFor = { item, group, tile: tile || null, back: back || tile || document.activeElement };
+  unlockFor = { item, group, tile: tile || null, back: back || tile || document.activeElement, from: from || 'panel' };
   const app = unlockEl.querySelector('[data-unlock="app"]');
   if (app) app.hidden = !isApple();
   unlockEl.hidden = false;
@@ -958,10 +1040,10 @@ function closeUnlock() {
 let unlockBusy = false; // between "Unlock" and the modal closing (preview bounce)
 function onUnlockAction(action) {
   if (unlockBusy) return;
-  const { item, group, tile } = unlockFor;
+  const { item, group, tile, from } = unlockFor;
   if (action === 'go') {
-    startFreeDay();
-    signal('try-today', { item, group, nth: String(tried().nth) });
+    startFreeDay(from);
+    signal('try-today', { item, group, nth: String(tried().nth), from });
     if (!reducedMotion()) { // the preview emoji bounce once with the confetti, then the modal closes
       unlockBusy = true;
       burstConfetti();
@@ -979,7 +1061,11 @@ function finishUnlock(tile, withBurst) {
   const wasLocked = panelBody ? Array.from(panelBody.querySelectorAll('.tb-thumb.is-locked')) : [];
   closeUnlock(); // focus goes back to the tapped tile (or the #pro-card button)
   celebrateUnlock(wasLocked, withBurst);
-  syncPanel();
+  syncPanel(); // also the ✨ buttons (toolbar + #pro-card)
+  if (celebrateExtrasBtn && !celebrateExtrasBtn.hidden) { // free day now: no celebration offer
+    celebrateExtrasBtn.hidden = true;
+    if (stage.classList.contains('is-complete') && hoorayBtn) hoorayBtn.focus();
+  }
   if (tile && document.contains(tile)) selectTile(tile); // apply the tapped item (it stays focused, now selected)
 }
 /** Unlock celebration: confetti burst, chime (Sound on only), lock badges pop off one after another (< 1 s in
@@ -1020,7 +1106,8 @@ function onAsk(action) {
   if (action === 'yes' || action === 'no') t.answers += 1; // answerNo: 1 = first answer in this browser
   saveTried();
   if (action === 'yes' || action === 'no') {
-    signal('would-pay', { answer: action, nth: String(t.nth), os: osName(), answerNo: String(t.answers), lang: langTag() });
+    // unlockFrom "unknown" = a free day started before 2026-10-23 (or set by a test helper)
+    signal('would-pay', { answer: action, nth: String(t.nth), os: osName(), answerNo: String(t.answers), lang: langTag(), unlockFrom: t.unlockFrom || 'unknown' });
     askThanks = true;
     const th = document.getElementById('tb-ask-thanks');
     if (th) th.textContent = action === 'yes' ? 'Thanks! Paid plans are not available yet — this helps us decide.' : 'Thanks for telling us!';
@@ -1124,9 +1211,15 @@ function wireBoardTitle() {
 
 /* ---- card below the fold (#pro-card): its button opens the same unlock modal (item "extras") + pro-view ---- */
 function syncProCard() {
+  const active = freeDayActive();
+  const bar = stage && stage.querySelector('[data-tb="extras"]'); // "✨ Free extras today" under the board
+  if (bar) {
+    bar.disabled = active;
+    const label = bar.querySelector('.tb-act-label');
+    if (label) label.textContent = active ? 'Extras unlocked' : 'Free extras today';
+  }
   const btn = document.querySelector('#pro-card [data-unlock-open]');
   if (!btn) return;
-  const active = freeDayActive();
   btn.disabled = active;
   btn.textContent = active ? '✨ All extras unlocked until midnight' : 'Try all extras free for today';
 }
@@ -1134,7 +1227,7 @@ function wireProCard() {
   const card = document.getElementById('pro-card');
   if (!card) return;
   const btn = card.querySelector('[data-unlock-open]');
-  if (btn) btn.addEventListener('click', () => { syncProCard(); if (!btn.disabled) openUnlock('extras', 'extras', null, btn); });
+  if (btn) btn.addEventListener('click', () => { syncProCard(); if (!btn.disabled) openExtras('card', btn); });
   syncProCard();
   if (typeof IntersectionObserver !== 'function') return;
   let seen = false; // once per page load
@@ -1271,6 +1364,11 @@ function onFsChange() { setFsLabel(nativeActive()); requestAnimationFrame(fitSlo
 if (stage) {
   // Board: restore before first render; panel grids exist before render() so syncPanel() can mark them.
   load();
+  showHint(); // before the first render, so fitSlots() counts its line
+  // Focus rings only for keyboard use: a mouse / touch press marks html.tb-pointer, any key clears it (tool.css).
+  const root = document.documentElement;
+  document.addEventListener('pointerdown', () => root.classList.add('tb-pointer'), true);
+  document.addEventListener('keydown', () => root.classList.remove('tb-pointer'), true);
   wirePanel();
   wireBoardTitle();
   render();
@@ -1295,14 +1393,29 @@ if (stage) {
     });
   }
   if (hoorayBtn) hoorayBtn.addEventListener('click', hooray);
+  if (celebrateExtrasBtn) celebrateExtrasBtn.addEventListener('click', () => {
+    if (freeDayActive()) { celebrateExtrasBtn.hidden = true; return; }
+    openExtras('celebration', celebrateExtrasBtn); // the modal sits over the celebration; focus comes back here
+  });
 
-  // Settings panel
-  if (settingsBtn) settingsBtn.addEventListener('click', openPanel);
+  // Settings panel: "🎨 Style" under the board (toggles), the reward circle (opens at Reward)
+  if (settingsBtn) settingsBtn.addEventListener('click', () => {
+    if (stage.classList.contains('is-settings')) closePanel(); else openPanel({ from: 'button' });
+  });
+  if (rewardEl) {
+    rewardEl.addEventListener('click', () => openPanel({ from: 'reward', section: 'reward' }));
+    rewardEl.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') { ev.preventDefault(); openPanel({ from: 'reward', section: 'reward' }); }
+    });
+  }
+  const extrasBtn = stage.querySelector('[data-tb="extras"]');
+  if (extrasBtn) extrasBtn.addEventListener('click', () => { syncProCard(); if (!extrasBtn.disabled) openExtras('toolbar', extrasBtn); });
   stage.querySelectorAll('[data-tb="close"]').forEach(btn => btn.addEventListener('click', closePanel));
   // Desktop: tapping the stage outside the panel closes it (phone: full-stage sheet, Done / × only).
   stage.addEventListener('click', ev => {
     if (!stage.classList.contains('is-settings') || isPhone()) return;
     if (panel.contains(ev.target) || (settingsBtn && settingsBtn.contains(ev.target))) return;
+    if ((rewardEl && rewardEl.contains(ev.target)) || ev.target.closest('.tb-actions')) return; // reward = jump to Reward
     if (unlockOpen() || (unlockEl && unlockEl.contains(ev.target))) return; // the modal sits over the panel
     if (ev.target && ev.target.id === 'tb-photo-input') return; // the file picker's click is not a tap outside
     closePanel();
@@ -1310,9 +1423,14 @@ if (stage) {
   document.addEventListener('keydown', ev => {
     if (unlockOpen()) { trapUnlock(ev); return; } // modal first: Escape = Not now, Tab stays inside
     if (stage.classList.contains('is-complete')) {
-      // Celebration dialog: the only control is Hooray. Tab stays on it, Escape = Hooray.
+      // Celebration dialog: Hooray (+ the extras button outside a free day). Tab stays inside, Escape = Hooray.
       if (ev.key === 'Escape') { ev.preventDefault(); hooray(); return; }
-      if (ev.key === 'Tab') { ev.preventDefault(); if (hoorayBtn) hoorayBtn.focus(); return; }
+      if (ev.key === 'Tab') {
+        ev.preventDefault();
+        const extra = celebrateExtrasBtn && !celebrateExtrasBtn.hidden ? celebrateExtrasBtn : null;
+        (extra && document.activeElement === hoorayBtn ? extra : hoorayBtn || extra).focus();
+        return;
+      }
     }
     if (ev.key === 'Escape') {
       if (stage.classList.contains('is-settings')) { ev.preventDefault(); closePanel(); return; }
@@ -1342,7 +1460,7 @@ if (stage) {
       tapSlot,
       fillAll() { for (let i = 0; i < model.slots; i++) if (!model.filled.includes(i)) tapSlot(i); },
       clearStorage() {
-        try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('tb-fs-hint'); localStorage.removeItem(TRIED_KEY); } catch (e) { /* ignore */ }
+        try { [STORAGE_KEY, 'tb-fs-hint', TRIED_KEY, HINT_KEY, SETTINGS_KEY].forEach(k => localStorage.removeItem(k)); } catch (e) { /* ignore */ }
         Promise.all([photoDelete('reward'), photoDelete('background')]).finally(() => {
           try { location.reload(); } catch (e) { /* not available in some test runners */ }
         });
@@ -1366,7 +1484,12 @@ if (stage) {
         if (!freeDayActive()) t.until = dateStr(new Date());
         askThanks = false; saveTried(); syncPanel(); showStatus('Free day active, nth → 3');
       },
-      clearTried() { triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0 }; try { localStorage.removeItem(TRIED_KEY); } catch (e) { /* ignore */ } syncPanel(); showStatus('Free-day data cleared'); },
+      clearTried() { triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0, unlockFrom: '' }; try { localStorage.removeItem(TRIED_KEY); } catch (e) { /* ignore */ } syncPanel(); showStatus('Free-day data cleared'); },
+      // empty-board hint + settings-open again, as in a fresh browser (also in this page load)
+      resetHintSettings() {
+        try { localStorage.removeItem(HINT_KEY); localStorage.removeItem(SETTINGS_KEY); } catch (e) { /* ignore */ }
+        settingsOpenSent = false; showHint(); fitSlots(); showStatus('Hint + settings-open reset');
+      },
       sessionPlus3() { sessionStart = (sessionStart || Date.now()) - 3 * 60 * 1000; showStatus('Session start moved back 3 min'); },
       setSessionStart(ts) { sessionStart = ts; },
       simulatePagehide() { window.dispatchEvent(new Event('pagehide')); },

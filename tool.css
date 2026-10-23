@@ -11,9 +11,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-brand-sub{font-weight:500;opacity:.8}
 .tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
 .tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
-.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 12px 64px;background:#FFFFFF;overflow:hidden}
-.tb-heading{text-align:center;margin:0 0 22px;max-width:100%}
-.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,4.2vw,3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
+.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 12px 64px;background:#FFFFFF;overflow:hidden}
+.tb-heading{text-align:center;margin:0 0 48px;max-width:100%}
+.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,min(4.2vw,6vh),3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
 .tb-stage.is-dark .tb-title{color:#fff}
 .tb-board-wrap{position:relative;width:100%;max-width:560px}
 .tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
@@ -36,9 +36,19 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.55);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
 .tb-stage-btn:hover{background:rgba(0,0,0,.65)}
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
-.tb-btn-settings{right:14px;width:46px;height:46px;border-radius:50%;padding:0}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Free extras today = light */
+.tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
+.tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
+.tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
+.tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
+.tb-act-style>span{font-size:1.15em}
+.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
+.tb-act-extras:hover{background:#EEF5FF}
+.tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
+.tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
+.tb-empty-hint[hidden]{display:none}
 .tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
 .tb-status.is-visible{opacity:1}
 .tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
@@ -75,7 +85,7 @@ html{scroll-behavior:smooth}
 .tb-set-label{display:block;margin:0 0 10px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.02rem;line-height:1.2;color:var(--tb-navy)}
 .tb-input{width:100%;height:44px;border:1px solid #C9CFDB;border-radius:12px;padding:0 12px;font:inherit;font-size:1rem;color:var(--tb-navy);background:#fff}
 .tb-input:focus{border-color:var(--tb-accent)}
-.tb-hint{margin:10px 0 0;font-size:.85rem;font-weight:600;line-height:1.3;color:#4a5480}
+.tb-hint{margin:-2px 0 10px;font-size:.85rem;font-weight:600;line-height:1.3;color:#4a5480}
 /* tiles: token icons, backgrounds and rewards share one size (5 equal columns) */
 .tb-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:3px;margin:-3px}
 .tb-thumb{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;border:1px solid var(--tb-ring);background:var(--tb-slot);font:inherit;font-size:1.7rem;line-height:1;color:inherit;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
@@ -83,8 +93,7 @@ html{scroll-behavior:smooth}
 .tb-thumb[aria-pressed="true"]{border-color:var(--tb-accent);background:#E3F0FF;box-shadow:0 0 0 3px var(--tb-accent)}
 .tb-thumb-img{display:flex;align-items:center;justify-content:center}
 .tb-thumb-bg .tb-thumb-img{position:absolute;inset:5px;border-radius:9px;background:var(--c,#fff);box-shadow:inset 0 0 0 1px rgba(30,42,68,.12)}
-.tb-thumb.is-locked{background:#fff}
-.tb-thumb.is-locked .tb-thumb-img{opacity:.45}
+/* locked (2026-10-23): full colour like a free tile, only the small lock badge shows it (was: white tile, content at .45) */
 .tb-thumb.is-nudge{box-shadow:0 0 0 3px #1F6FD1}
 .tb-lock{position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:var(--tb-navy);color:#fff;display:flex;align-items:center;justify-content:center}
 .tb-lock svg{width:10px;height:10px;fill:currentColor}
@@ -209,10 +218,10 @@ html{scroll-behavior:smooth}
 .tb-switch input:checked~.tb-switch-track{background:var(--tb-accent)}
 .tb-switch input:checked~.tb-switch-track::after{transform:translateX(20px)}
 .tb-switch input:focus-visible~.tb-switch-track{outline:3px solid var(--tb-accent);outline-offset:3px}
-.tb-feedback{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--tb-slot);border-radius:12px;padding:6px 6px 6px 12px}
+.tb-feedback{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;background:var(--tb-slot);border-radius:12px;padding:0 4px 0 12px} /* one line, at the bottom of the panel body */
 .tb-feedback[hidden]{display:none}
-.tb-feedback-q{flex:1 1 auto;font-weight:700;font-size:.9rem}
-.tb-feedback-btn{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--tb-navy);font-size:1.3rem;line-height:1;cursor:pointer}
+.tb-feedback-q{flex:1 1 auto;min-width:0;font-weight:700;font-size:.9rem;line-height:1.2}
+.tb-feedback-btn{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--tb-navy);font-size:1.3rem;line-height:1;cursor:pointer}
 .tb-feedback-btn:hover{background:var(--tb-ring)}
 /* desktop: while the panel is open, the hero, board and privacy line move into the free space left of it
    (tool.js refits the slot grid to that width, so changes stay visible live) */
@@ -242,6 +251,28 @@ html{scroll-behavior:smooth}
 .tb-board-title[contenteditable]:focus{outline:3px solid var(--tb-accent);text-decoration:none}
 .tb-board-title[contenteditable]:empty::before{content:"Board name";opacity:.35}
 
+/* ---- reward circle: a button that opens the panel at Reward ---- */
+.tb-reward[role="button"]{cursor:pointer;transition:box-shadow .15s ease}
+.tb-reward[role="button"]:hover{box-shadow:0 0 0 3px var(--tb-accent)}
+
+/* ---- buttons under the board: hidden in fullscreen, and on phones while the sheet is open ---- */
+.tb-stage:fullscreen .tb-actions{display:none}
+.tb-stage:-webkit-full-screen .tb-actions{display:none}
+.tb-stage.is-expanded .tb-actions{display:none}
+.tb-stage:fullscreen .tb-empty-hint{display:none}
+.tb-stage:-webkit-full-screen .tb-empty-hint{display:none}
+.tb-stage.is-expanded .tb-empty-hint{display:none}
+/* focus ring on the pills + reward circle: keyboard only (tool.js sets html.tb-pointer after a mouse / touch press),
+   one dark ring outside the pill so it never reads as a second accent border */
+.tb-act:focus-visible,.tb-reward:focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
+.tb-act-style:focus-visible{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--tb-navy)} /* dark pill: white inner + navy outer ring */
+.tb-pointer .tb-act:focus,.tb-pointer .tb-reward:focus{outline:none;box-shadow:none}
+.tb-pointer .tb-panel button:focus{outline:none} /* × and every panel button: ring only after a key press (Enter on 🎨 Style still shows it on ×) */
+.tb-pointer .tb-modal button:focus,.tb-pointer .tb-modal a:focus{outline:none} /* unlock modal: Unlock, Not now, App Store link — same rule */
+.tb-act:focus:not(:focus-visible),.tb-reward:focus:not(:focus-visible){outline:none}
+.tb-act-style:focus:not(:focus-visible){box-shadow:none}
+@media(max-width:699px){.tb-stage.is-settings .tb-actions{display:none}}
+
 /* ---- celebration overlay (shown by .is-complete; role=dialog, focus stays on Hooray, Escape = Hooray) ---- */
 .tb-complete{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;background:rgba(30,42,68,.85);color:#fff}
 .tb-stage.is-complete .tb-complete{display:flex}
@@ -250,6 +281,10 @@ html{scroll-behavior:smooth}
 .tb-complete-sub{margin:0 0 14px;font-size:1.2rem;font-weight:700;opacity:.9}
 .tb-hooray{min-height:64px;min-width:200px;padding:0 36px;border:0;border-radius:999px;background:var(--tb-green);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.4rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .tb-hooray:hover{filter:brightness(1.05)}
+/* small secondary button under Hooray (only outside a free day): opens the unlock modal; never over the reward */
+.tb-complete-extras{margin-top:4px;min-height:44px;max-width:min(340px,100%);padding:8px 18px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:transparent;color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:600;font-size:.9rem;line-height:1.3;cursor:pointer}
+.tb-complete-extras:hover{background:rgba(255,255,255,.12)}
+.tb-complete-extras[hidden]{display:none}
 .tb-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 
 /* ---- token pop (.3 s) — no layout change, transform only ---- */
