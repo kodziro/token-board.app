@@ -32,6 +32,10 @@
     "My board" is shown as the new default, any other title stays). The hint line becomes "Your board is saved on
     this device" after the first slot tap and on later visits (hidden in fullscreen). Focus rings on the pills, the
     reward circle, every panel button (× too) and the unlock modal buttons + link only for keyboard use (html.tb-pointer after a mouse / touch press, removed on any key).
+  Fullscreen + celebration (2026-10-23, ?v=20261023d): fullscreen shows only the board card and the exit button (H1,
+    privacy line, buttons row and the line under the circles hidden); the board may grow to 960 px and the circles
+    are fitted to the freed height (max 160 px for goals 3–10, 96 px above 10). Celebration: solid white
+    "✨ Try all extras free today" button, overlay .94; Hooray / extras button focus ring only after a key press.
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
   T7 (2026-10-19): a11y — #tb-count (visually hidden, aria-live) says "N of M earned" on every fill/remove;
     celebration overlay keeps focus on Hooray (Tab trapped) and Escape = Hooray; the settings panel is
@@ -275,14 +279,15 @@ function fitSlots() {
   if (!slotsEl || !stage) return;
   const n = model.slots;
   const many = n > 10;
-  const fit = many || stage.classList.contains('is-settings');
+  const full = isFullscreen();
+  const fit = many || full || stage.classList.contains('is-settings'); // fullscreen: the board grows into the freed space
   stage.classList.toggle('is-many', many);
   slotsEl.classList.toggle('is-fit', fit);
   if (!fit) { ['--cols', '--s', '--gap'].forEach(p => slotsEl.style.removeProperty(p)); return; }
   const W = slotsEl.clientWidth;
   if (!W) return;
   const gap = n > 40 ? 6 : n > 10 || window.innerWidth < 480 ? 8 : 12;
-  const max = many ? 64 : 96; // 3–10: about the size the 5-column CSS gives on a full-width board
+  const max = full ? (many ? 96 : 160) : many ? 64 : 96; // 3–10: about the size the 5-column CSS gives on a full-width board
   const H = Math.max(80, slotHeightBudget());
   let best = null;
   for (let c = 5; c <= Math.max(5, Math.min(n, 20)); c++) { // never fewer than 5 columns (same look as the CSS for 3 / 5)
@@ -295,10 +300,12 @@ function fitSlots() {
   slotsEl.style.setProperty('--gap', `${gap}px`);
 }
 
+const isFullscreen = () => !!stage && (document.fullscreenElement === stage || document.webkitFullscreenElement === stage || stage.classList.contains('is-expanded'));
+
 /** Height left for the slot grid: stage height minus its padding, the heading and the board chrome. */
 function slotHeightBudget() {
   const px = (el, ...props) => { if (!el) return 0; const cs = getComputedStyle(el); return props.reduce((t, p) => t + (parseFloat(cs[p]) || 0), 0); };
-  const isFull = document.fullscreenElement === stage || document.webkitFullscreenElement === stage || stage.classList.contains('is-expanded');
+  const isFull = isFullscreen();
   const headerH = isFull ? 0 : ((document.querySelector('.tb-header') || {}).offsetHeight || 0);
   const stageH = isFull ? stage.clientHeight : Math.max(480, window.innerHeight - headerH);
   const heading = stage.querySelector('.tb-heading');
