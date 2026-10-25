@@ -209,6 +209,12 @@ html{scroll-behavior:smooth}
 .tb-goal-input::-webkit-outer-spin-button,.tb-goal-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .tb-goal-input:focus{border-color:var(--tb-accent)}
 .tb-goal-range{margin-left:auto;font-size:.85rem;font-weight:600;color:#4a5480}
+.tb-hint.tb-hint-below{margin:10px 0 0} /* T15b: the Token goal hint sits under the stepper row */
+/* T15: stepper + number input are an extra; locked = the navy lock badge on the number input only (T15b), controls in full colour */
+.tb-goal-box{position:relative;display:inline-flex}
+.tb-stepper .tb-lock{display:none;right:-4px;bottom:-4px}
+.tb-stepper.is-locked .tb-lock{display:flex}
+.tb-stepper.is-locked .tb-goal-input{cursor:pointer}
 /* sound: label + toggle on one row */
 .tb-switch{display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer}
 .tb-switch .tb-set-label{margin:0}

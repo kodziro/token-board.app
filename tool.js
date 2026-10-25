@@ -36,6 +36,16 @@
     privacy line, buttons row and the line under the circles hidden); the board may grow to 960 px and the circles
     are fitted to the freed height (max 160 px for goals 3–10, 96 px above 10). Celebration: solid white
     "✨ Try all extras free today" button, overlay .94; Hooray / extras button focus ring only after a key press.
+  More locks (T15, 2026-10-25, ?v=20261025a; merged 2026-10-25):
+    only the defaults are free — token ⭐, background white, reward 🎁, goals 3 / 5 / 10 (quick picks). Other icons,
+    backgrounds and rewards are locked like before; the goal stepper − / + and the number input are locked too
+    (read-only, ", locked" in the accessible name; a click / tap, Enter / Space, a typed key or a paste opens the
+    unlock modal, Tab focus alone does not). The free day unlocks them with the rest. T15b (?v=20261025b): the
+    lock badge only on the number input (not on − / +); the goal hint sits under the stepper row ("🔒 Other
+    numbers are locked — …"). A saved board keeps a
+    now-locked item or a goal outside 3 / 5 / 10. Signals: pro-click {item "goal-stepper", from "panel"} (then
+    try-today / try-skip with item "goal-stepper", group "goal"), try-use {item "goal", group "goal"} the first time a
+    free-day goal outside 3 / 5 / 10 is set; board-complete tried also counts such a goal.
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
   T7 (2026-10-19): a11y — #tb-count (visually hidden, aria-live) says "N of M earned" on every fill/remove;
     celebration overlay keeps focus on Hooray (Tab trapped) and Escape = Hooray; the settings panel is
@@ -62,7 +72,7 @@
   done), tb-settings {count} (page loads with a panel open). IndexedDB: tb-photos (store photos: reward, background).
 */
 
-import { send } from './assets/tool-signals.js?v=20261019i';
+import { send } from './assets/tool-signals.js?v=20261025b';
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -99,9 +109,10 @@ export function showStatus(text, ms = 2000) {
 const STORAGE_KEY = 'tb-board';
 const GOAL_MIN = 3, GOAL_MAX = 100; // token goal: any whole number (quick picks 3 / 5 / 10 in the panel)
 const isGoal = n => Number.isInteger(n) && n >= GOAL_MIN && n <= GOAL_MAX;
-// Catalogs (CLAUDE.md § Browser tool: free icons ⭐ ❤️ 😊, free backgrounds white + light blue; all others locked).
+const FREE_GOALS = [3, 5, 10]; // the quick picks; any other goal (stepper / number input) is an extra (T15)
+// Catalogs (CLAUDE.md § Browser tool, T15: only the defaults are free — icon ⭐, background white; all others locked).
 const ICONS = [
-  ['star', '⭐', 'Star', true], ['heart', '❤️', 'Heart', true], ['smile', '😊', 'Smiling face', true],
+  ['star', '⭐', 'Star', true], ['heart', '❤️', 'Heart'], ['smile', '😊', 'Smiling face'],
   ['sun', '☀️', 'Sun'], ['moon', '🌙', 'Moon'], ['rainbow', '🌈', 'Rainbow'], ['unicorn', '🦄', 'Unicorn'],
   ['rocket', '🚀', 'Rocket'], ['robot', '🤖', 'Robot'], ['cat', '🐱', 'Cat'], ['dog', '🐶', 'Dog'],
   ['teddy', '🧸', 'Teddy bear'], ['dinosaur', '🦖', 'Dinosaur'], ['butterfly', '🦋', 'Butterfly'],
@@ -110,12 +121,12 @@ const ICONS = [
   ['basketball', '🏀', 'Basketball']
 ].map(([id, emoji, name, free]) => ({ id, emoji, name, free: !!free }));
 const BACKGROUNDS = [
-  ['white', '#FFFFFF', 'White', true], ['blue', '#D9ECFF', 'Light blue', true],
+  ['white', '#FFFFFF', 'White', true], ['blue', '#D9ECFF', 'Light blue'],
   ['green', '#DFF5E3', 'Green'], ['yellow', '#FFF3C4', 'Yellow'], ['pink', '#FFE0EC', 'Pink'],
   ['purple', '#EADDFF', 'Purple'], ['grey', '#E9EAEE', 'Grey'], ['navy', '#1E2A44', 'Navy', false, true]
 ].map(([id, color, name, free, dark]) => ({ id, color, name, free: !!free, dark: !!dark }));
-// Free rewards (2026-10-21): one per type, at most one food item; all Emoji 13 or older. All others locked.
-const FREE_REWARDS = ['🎁', '🧸', '🍦', '📺', '🎮', '🎨', '📚', '⚽', '🌳', '🎵'];
+// Free rewards (T15, 2026-10-25): only the default 🎁 (2026-10-21 – T15: also 🧸 🍦 📺 🎮 🎨 📚 ⚽ 🌳 🎵). All others locked.
+const FREE_REWARDS = ['🎁'];
 const DEFAULT_REWARD = '🎁'; // new board, cleared storage, and the fallback for a missing / invalid saved reward (2026-10-21; was 🧸)
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const REWARDS = [
@@ -134,7 +145,7 @@ const freeIcon = e => ICONS.some(i => i.emoji === e && i.free);
 const iconByEmoji = e => ICONS.find(i => i.emoji === e);
 const bgById = id => BACKGROUNDS.find(b => b.id === id);
 const rewardByEmoji = e => REWARDS.find(r => r.emoji === e);
-const isFreeLook = () => !!(freeIcon(model.icon) && (bgById(model.background) || {}).free && (rewardByEmoji(model.reward) || {}).free && !model.rewardPhoto && !model.bgPhoto);
+const isFreeLook = () => !!(FREE_GOALS.includes(model.slots) && freeIcon(model.icon) && (bgById(model.background) || {}).free && (rewardByEmoji(model.reward) || {}).free && !model.rewardPhoto && !model.bgPhoto);
 const TITLE_MAX = 40;
 const DEFAULT_TITLE = 'I am working for'; // 2026-10-23; was "My board" (migrated in sanitize)
 
@@ -150,8 +161,8 @@ function sanitize(raw) {
   if (isGoal(raw.slots)) m.slots = raw.slots;
   if (typeof raw.title === 'string') m.title = raw.title.trim().slice(0, TITLE_MAX);
   if (m.title === 'My board') m.title = DEFAULT_TITLE; // the old default; a title the user typed stays
-  // Any catalog item is restored, also a locked one: a board in use (e.g. in class) keeps an item that was
-  // tried for a day, or that was free before 2026-10-21, until the user picks something else.
+  // Any catalog item and any goal 3–100 is restored, also a locked one: a board in use (e.g. in class) keeps an
+  // item that was tried for a day, or that was free before 2026-10-21 / T15, until the user picks something else.
   if (typeof raw.icon === 'string' && iconByEmoji(raw.icon)) m.icon = raw.icon;
   if (raw.reward === '🛝') raw.reward = '🎠'; // removed 2026-10-21 (new emoji, missing on older systems): closest = carousel
   if (typeof raw.reward === 'string' && rewardByEmoji(raw.reward)) m.reward = raw.reward;
@@ -510,12 +521,13 @@ function hooray() {
 /* ---------------- public API (used by T3 settings panel and T4) ---------------- */
 export function getModel() { return JSON.parse(JSON.stringify(model)); }
 
-/** Token goal 3–100 (clamped). Earned tokens are kept; if the new goal is smaller, the count is clamped to it. */
+/** Token goal 3–100 (clamped). Earned tokens are kept; if the new goal is smaller, the count is clamped to it.
+    Outside a free day only the quick picks 3 / 5 / 10 can be set (T15). */
 export function setSlots(n) {
   n = Math.round(Number(n));
   if (!Number.isFinite(n)) { syncPanel(); return; }
   n = Math.min(GOAL_MAX, Math.max(GOAL_MIN, n));
-  if (n === model.slots) { syncPanel(); return; }
+  if (n === model.slots || !(FREE_GOALS.includes(n) || freeDayActive())) { syncPanel(); return; }
   const earned = Math.min(model.filled.length, n);
   const kept = model.filled.filter(i => i < n);
   for (let i = 0; kept.length < earned && i < n; i++) if (!kept.includes(i)) kept.push(i);
@@ -760,13 +772,27 @@ function syncPanel() {
     b.setAttribute('aria-pressed', b.dataset.id === current ? 'true' : 'false');
   });
   panelBody.querySelectorAll('input[name="tb-slots"]').forEach(r => { r.checked = Number(r.value) === model.slots; });
+  // Goal stepper + number input: an extra (T15); locked = read-only, ", locked" in the name, lock badges (CSS).
+  const stepper = panelBody.querySelector('.tb-stepper');
+  if (stepper) stepper.classList.toggle('is-locked', !active);
   const goal = document.getElementById('tb-goal-input');
-  if (goal && document.activeElement !== goal) goal.value = String(model.slots);
+  if (goal) {
+    if (document.activeElement !== goal) goal.value = String(model.slots);
+    goal.readOnly = !active;
+    lockLabel(goal, !active);
+  }
   panelBody.querySelectorAll('[data-goal]').forEach(b => {
     b.disabled = Number(b.dataset.goal) < 0 ? model.slots <= GOAL_MIN : model.slots >= GOAL_MAX;
+    lockLabel(b, !active);
   });
   const sound = document.getElementById('tb-sound');
   if (sound) { sound.checked = !!model.sound; sound.setAttribute('aria-checked', model.sound ? 'true' : 'false'); }
+}
+
+/** Accessible name with ", locked" while locked (base name kept in data-label, like the tiles). */
+function lockLabel(el, locked) {
+  if (!el.dataset.label) el.dataset.label = el.getAttribute('aria-label') || '';
+  el.setAttribute('aria-label', locked ? `${el.dataset.label}, locked` : el.dataset.label);
 }
 
 function nudge(btn) {
@@ -788,12 +814,30 @@ function selectTile(t) {
 }
 /** try-use: the first time a locked item is chosen during the current free day. */
 function noteTryUse(t) {
-  if (!t || t.dataset.free || !freeDayActive()) return;
-  const tr = tried();
-  if (tr.used.includes(t.dataset.item)) return;
-  tr.used.push(t.dataset.item); saveTried();
-  signal('try-use', { item: t.dataset.item, group: GROUP[t.dataset.kind] });
+  if (!t || t.dataset.free) return;
+  noteTry(t.dataset.item, GROUP[t.dataset.kind]);
 }
+function noteTry(item, group) {
+  if (!freeDayActive()) return;
+  const tr = tried();
+  if (tr.used.includes(item)) return;
+  tr.used.push(item); saveTried();
+  signal('try-use', { item, group });
+}
+/** After the stepper / number input changed the goal: setting-change (debounced) + try-use {item "goal"} the first
+    time a goal outside 3 / 5 / 10 is set in this free day. */
+function goalChanged() {
+  goalSignal();
+  if (!FREE_GOALS.includes(model.slots)) noteTry('goal', 'goal');
+}
+/** One step of − / + (also applied after the unlock that the tap opened). */
+function stepGoal(b) {
+  const before = model.slots;
+  setSlots(model.slots + Number(b.dataset.goal));
+  if (model.slots !== before) goalChanged();
+  if (b.disabled) { const goal = document.getElementById('tb-goal-input'); if (goal) goal.focus(); } // keep focus in the panel at 3 / 100
+}
+const goalLocked = () => { syncPanel(); return !freeDayActive(); }; // re-check first (midnight may have passed)
 
 /* =====================================================================
    Own photo (reward + background): read and shrunk on the device, kept in this browser only
@@ -1019,6 +1063,11 @@ function onLockedTap(btn) {
   nudge(btn);
   openUnlock(btn.dataset.item, GROUP[btn.dataset.kind], btn, null, 'panel');
 }
+/** Locked goal stepper / number input (T15): pro-click {item "goal-stepper"}, then the unlock modal. */
+function onGoalLocked(el) {
+  signal('pro-click', { item: 'goal-stepper', from: 'panel' });
+  openUnlock('goal-stepper', 'goal', el, null, 'panel');
+}
 /** The ✨ buttons (under the board, celebration, #pro-card): pro-click {item "extras", from}, then the modal. */
 function openExtras(from, back) {
   signal('pro-click', { item: 'extras', from });
@@ -1073,7 +1122,10 @@ function finishUnlock(tile, withBurst) {
     celebrateExtrasBtn.hidden = true;
     if (stage.classList.contains('is-complete') && hoorayBtn) hoorayBtn.focus();
   }
-  if (tile && document.contains(tile)) selectTile(tile); // apply the tapped item (it stays focused, now selected)
+  if (tile && document.contains(tile)) { // apply the tapped item (it stays focused, now selected)
+    if (tile.dataset.goal) stepGoal(tile); // − / +: do the step; the number input just gets focus back
+    else if (tile.classList.contains('tb-thumb')) selectTile(tile);
+  }
 }
 /** Unlock celebration: confetti burst, chime (Sound on only), lock badges pop off one after another (< 1 s in
     total) with a sparkle, the "✨ unlocked" line fades in with a glow. Reduced motion: only a calm fade.
@@ -1164,20 +1216,28 @@ function wirePanel() {
     if (r.checked && n !== model.slots) { setSlots(n); goalSignal(); }
   }));
   panelBody.querySelectorAll('[data-goal]').forEach(b => b.addEventListener('click', () => {
-    const before = model.slots;
-    setSlots(model.slots + Number(b.dataset.goal));
-    if (model.slots !== before) goalSignal();
-    if (b.disabled) { const goal = document.getElementById('tb-goal-input'); if (goal) goal.focus(); } // keep focus in the panel at 3 / 100
+    if (goalLocked()) { onGoalLocked(b); return; } // Enter / Space on the button arrive here as click
+    stepGoal(b);
   }));
   const goal = document.getElementById('tb-goal-input');
   if (goal) {
     goal.addEventListener('change', () => { // Enter or leaving the field; typing alone never re-renders the board
       const before = model.slots;
       setSlots(goal.value);
-      goal.value = String(model.slots); // shows the clamped value (e.g. 250 → 100, 1 → 3)
-      if (model.slots !== before) goalSignal();
+      goal.value = String(model.slots); // shows the clamped value (e.g. 250 → 100, 1 → 3); a locked goal stays
+      if (model.slots !== before) goalChanged();
     });
-    goal.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); goal.blur(); goal.focus(); } });
+    // Locked (T15): a click / tap, Enter / Space, a typed key or a paste opens the unlock modal; Tab focus alone
+    // does not, and shortcuts (Cmd / Ctrl / Alt), Tab, Escape and the arrow keys left / right pass through.
+    const EDIT_KEYS = ['Enter', 'Backspace', 'Delete', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
+    goal.addEventListener('click', () => { if (goalLocked()) onGoalLocked(goal); });
+    goal.addEventListener('keydown', ev => {
+      const typed = !ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.key.length === 1 || EDIT_KEYS.includes(ev.key));
+      if (typed && goalLocked()) { ev.preventDefault(); onGoalLocked(goal); return; }
+      if (ev.key === 'Enter') { ev.preventDefault(); goal.blur(); goal.focus(); }
+    });
+    goal.addEventListener('paste', ev => { if (goalLocked()) { ev.preventDefault(); onGoalLocked(goal); } });
+    goal.addEventListener('beforeinput', ev => { if (goal.readOnly) ev.preventDefault(); }); // drop, IME: never a change
   }
   const sound = document.getElementById('tb-sound');
   if (sound) sound.addEventListener('change', () => {

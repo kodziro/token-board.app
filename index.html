@@ -86,9 +86,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261023d">
-<link rel="stylesheet" href="tool.css?v=20261023d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261023d"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261025b">
+<link rel="stylesheet" href="tool.css?v=20261025b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261025b"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -108,9 +108,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     "@type": "Person",
     "name": "Natalia Jakubczyk-Gajewska"
   },
-  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick any token goal from 3 to 100, a token icon and a reward; nothing is uploaded and no account is needed.",
+  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds and rewards are extras you can unlock free for a day. Nothing is uploaded and no account is needed.",
   "featureList": [
-    "Token goal from 3 to 100",
+    "Token goal of 3, 5 or 10 (any goal from 3 to 100 as an extra)",
     "Emoji tokens: tap a slot to earn, tap again to remove",
     "Visual reward picker",
     "Celebration with confetti when the board is full",
@@ -167,7 +167,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "How many tokens should I start with?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
+        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is an extra you can unlock free for a day. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
       }
     },
     {
@@ -199,7 +199,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "Is it free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The online token board is free, with no account and no ads: any token goal from 3 to 100, plus a free set of token icons, backgrounds and rewards. Some extras are locked (more icons, backgrounds, rewards and your own photos); you can unlock them all free for a day, as often as you like, while we test."
+        "text": "Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras; you can unlock them all free for a day, as often as you like, while we test."
       }
     },
     {
@@ -215,8 +215,8 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261019i">
-<script type="module" src="tool.js?v=20261023d"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261025b">
+<script type="module" src="tool.js?v=20261025b"></script>
 </head>
 <body>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -296,10 +296,11 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         </div>
         <div class="tb-stepper">
           <button type="button" class="tb-step-btn" data-goal="-1" aria-label="One token less" aria-controls="tb-goal-input">−</button>
-          <input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100">
+          <span class="tb-goal-box"><input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100"><span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span></span>
           <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
           <span class="tb-goal-range" aria-hidden="true">3–100</span>
         </div>
+        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to try all extras free for today.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
@@ -350,7 +351,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     <div class="tb-modal-box">
       <p class="tb-modal-preview" aria-hidden="true"><span>🦄</span><span>🚀</span><span>🌈</span><span>🦖</span><span>🎠</span><span>🖼️</span></p>
       <h2 class="tb-modal-title" id="tb-unlock-title">Try all extras free for today</h2>
-      <p id="tb-unlock-text">All icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
+      <p id="tb-unlock-text">All token goals, icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
       <div class="tb-card-actions">
         <button type="button" class="tb-unlock-go" data-unlock="go"><span aria-hidden="true">✨</span> Unlock free for today</button>
         <button type="button" class="tb-link" data-unlock="skip">Not now</button>
@@ -378,7 +379,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-tokens">
     <summary>How many tokens should I start with?</summary>
-    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10, or pick any number from 3 to 100. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
+    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is an extra you can unlock free for a day. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
   </details>
   <details id="faq-reward">
     <summary>How do I pick a reward (reinforcer)?</summary>
@@ -394,7 +395,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-free">
     <summary>Is it free?</summary>
-    <p>Yes. The online token board is free, with no account and no ads: any token goal from 3 to 100, plus a free set of token icons, backgrounds and rewards. Some extras are locked (more icons, backgrounds, rewards and your own photos); you can unlock them all free for a day, as often as you like, while we test.</p>
+    <p>Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras; you can unlock them all free for a day, as often as you like, while we test.</p>
   </details>
   <details id="faq-privacy">
     <summary>Is anything uploaded?</summary>
@@ -425,7 +426,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 
 <section id="interest" class="tb-section tb-wrap">
   <div class="tb-card tb-interest-page" id="pro-card">
-    <p>Most of the board is free. Some extras are locked; you can unlock them all free for a day, as often as you like, while we test.</p>
+    <p>The basic board is free. Extras are locked; you can try them all free for a day.</p>
     <div class="tb-card-actions">
       <button type="button" class="tb-pill" data-unlock-open>Try all extras free for today</button>
     </div>
@@ -563,7 +564,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       </div>
     </div>
     <div class="foot-note">
-      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-23">October 23, 2026</time>.</p>
+      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-25">October 25, 2026</time>.</p>
     </div>
   </div>
 </footer>

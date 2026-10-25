@@ -74,9 +74,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261023d">
-<link rel="stylesheet" href="tool.css?v=20261023d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261023d"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261025b">
+<link rel="stylesheet" href="tool.css?v=20261025b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261025b"></noscript>
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
@@ -100,8 +100,8 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261019i">
-<script type="module" src="tool.js?v=20261023d"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261025b">
+<script type="module" src="tool.js?v=20261025b"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -182,10 +182,11 @@ window.__tbLog = function (name, payload) {
         </div>
         <div class="tb-stepper">
           <button type="button" class="tb-step-btn" data-goal="-1" aria-label="One token less" aria-controls="tb-goal-input">−</button>
-          <input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100">
+          <span class="tb-goal-box"><input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100"><span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span></span>
           <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
           <span class="tb-goal-range" aria-hidden="true">3–100</span>
         </div>
+        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to try all extras free for today.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
@@ -236,7 +237,7 @@ window.__tbLog = function (name, payload) {
     <div class="tb-modal-box">
       <p class="tb-modal-preview" aria-hidden="true"><span>🦄</span><span>🚀</span><span>🌈</span><span>🦖</span><span>🎠</span><span>🖼️</span></p>
       <h2 class="tb-modal-title" id="tb-unlock-title">Try all extras free for today</h2>
-      <p id="tb-unlock-text">All icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
+      <p id="tb-unlock-text">All token goals, icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
       <div class="tb-card-actions">
         <button type="button" class="tb-unlock-go" data-unlock="go"><span aria-hidden="true">✨</span> Unlock free for today</button>
         <button type="button" class="tb-link" data-unlock="skip">Not now</button>
@@ -248,7 +249,7 @@ window.__tbLog = function (name, payload) {
 
 <section id="interest" class="tb-section tb-wrap">
   <div class="tb-card tb-interest-page" id="pro-card">
-    <p>Most of the board is free. Some extras are locked; you can unlock them all free for a day, as often as you like, while we test.</p>
+    <p>The basic board is free. Extras are locked; you can try them all free for a day.</p>
     <div class="tb-card-actions">
       <button type="button" class="tb-pill" data-unlock-open>Try all extras free for today</button>
     </div>
