@@ -7,11 +7,10 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Token Board – tool test page (internal)</title>
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap"></noscript>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/fredoka-latin.woff2" crossorigin>
+<link rel="preload" as="style" href="assets/fonts/fonts.css?v=20261114a">
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a"></noscript>
 <style>
 /* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
    and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
@@ -53,7 +52,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
-/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Free extras today = light */
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
 .tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
 .tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
 .tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
@@ -61,6 +60,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-act-style>span{font-size:1.15em}
 .tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
 .tb-act-extras:hover{background:#EEF5FF}
+.tbu-has-key .tb-act-extras{display:none}
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -74,9 +74,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261025b">
-<link rel="stylesheet" href="tool.css?v=20261025b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261025b"></noscript>
+<link rel="preload" as="style" href="tool-next.css?v=20261114c">
+<link rel="stylesheet" href="tool-next.css?v=20261114c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool-next.css?v=20261114c"></noscript>
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
@@ -92,6 +92,16 @@ body{padding-bottom:240px}
 #tb-log{flex:1 1 auto;margin:0;padding:6px 12px 10px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 </style>
 <script>
+// Staging page only (worker/README.md § 8.3, § 8.4.6): ring 1 = the mock API; ?dev=1 stores the dev flag that shows the unlock UI.
+window.__tbUnlockApi='https://tokenboard-unlock-test.keepquiet-unlock-worker.workers.dev';
+try{if(/[?&]dev=1(&|$)/.test(location.search))localStorage.setItem('tb-dev','1');}catch(e){}
+try{if(/^TB-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(localStorage.getItem('tb-license')||''))document.documentElement.classList.add('tbu-has-key');}catch(e){}
+(function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
+var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;else if(u&&u.length<=200)o.session=u;
+if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__tbUnlock=o;
+p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}})();
+</script>
+<script>
 // Signal log: tool.js calls window.__tbLog(name, payload) for every signal (T1: no network).
 window.__tbLog = function (name, payload) {
   var pre = document.getElementById('tb-log');
@@ -100,10 +110,10 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261025b">
-<script type="module" src="tool.js?v=20261025b"></script>
+<link rel="modulepreload" href="assets/tool-signals-next.js?v=20261114d">
+<script type="module" src="tool-next.js?v=20261115a"></script>
 </head>
-<body data-td-test="1" data-td-page="tool-test">
+<body data-td-test="1" data-td-page="tool-test" data-tbu-gate>
 <a class="tb-skip" href="#board">Skip to the board</a>
 <p class="tt-banner">Test mode: signals are sent to TelemetryDeck as test data.</p>
 
@@ -112,6 +122,7 @@ window.__tbLog = function (name, payload) {
   <nav class="tb-nav" aria-label="Main">
     <a href="#board">Board</a>
     <a href="#guides">Guides</a>
+    <a href="#pricing">Pricing</a>
     <a href="#app">App</a>
   </nav>
 </header>
@@ -147,7 +158,7 @@ window.__tbLog = function (name, payload) {
     </div>
     <div class="tb-actions" id="tb-actions">
       <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
-      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Free extras today</span></button>
+      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Unlock all extras</span></button>
     </div>
   </div>
 
@@ -159,16 +170,7 @@ window.__tbLog = function (name, payload) {
       <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close the style panel">×</button>
     </div>
     <div class="tb-panel-body" id="tb-panel-body">
-      <p class="tb-freeday" id="tb-freeday" hidden>✨ All extras unlocked until midnight.</p>
-      <div class="tb-ask" id="tb-ask" hidden>
-        <button type="button" class="tb-ask-x" data-ask="close" aria-label="Close the question">×</button>
-        <p class="tb-ask-q">Quick question: would you pay to keep extras unlocked?</p>
-        <div class="tb-ask-btns">
-          <button type="button" class="tb-ask-btn" data-ask="yes">Yes</button>
-          <button type="button" class="tb-ask-btn" data-ask="no">No</button>
-        </div>
-        <p class="tb-ask-thanks" id="tb-ask-thanks" role="status" aria-live="polite"></p>
-      </div>
+      <div class="tbu-card" id="tbu-card" hidden></div>
       <section class="tb-set">
         <label class="tb-set-label" for="tb-title-input">Board name</label>
         <input class="tb-input" id="tb-title-input" type="text" maxlength="40" autocomplete="off" spellcheck="false">
@@ -186,23 +188,23 @@ window.__tbLog = function (name, payload) {
           <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
           <span class="tb-goal-range" aria-hidden="true">3–100</span>
         </div>
-        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to try all extras free for today.</p>
+        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to unlock all extras.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-background" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-reward" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
@@ -214,6 +216,7 @@ window.__tbLog = function (name, payload) {
           <span class="tb-switch-track" aria-hidden="true"></span>
         </label>
       </section>
+      <div class="tbu-line" id="tbu-line" hidden></div>
       <div class="tb-feedback" id="tb-feedback" hidden>
         <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
         <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
@@ -230,28 +233,39 @@ window.__tbLog = function (name, payload) {
     <p class="tb-complete-title" id="tb-complete-title">You did it!</p>
     <p class="tb-complete-sub">Goal reached</p>
     <button type="button" class="tb-hooray" data-tb="hooray">Hooray!</button>
-    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden><span aria-hidden="true">✨</span> Try all extras free today</button>
+    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden><span aria-hidden="true">✨</span> Unlock all extras</button>
   </div>
   <input type="file" accept="image/*" id="tb-photo-input" class="tb-sr" tabindex="-1" aria-hidden="true">
-  <div class="tb-modal" id="tb-unlock" role="dialog" aria-modal="true" aria-labelledby="tb-unlock-title" aria-describedby="tb-unlock-text" hidden>
-    <div class="tb-modal-box">
-      <p class="tb-modal-preview" aria-hidden="true"><span>🦄</span><span>🚀</span><span>🌈</span><span>🦖</span><span>🎠</span><span>🖼️</span></p>
-      <h2 class="tb-modal-title" id="tb-unlock-title">Try all extras free for today</h2>
-      <p id="tb-unlock-text">All token goals, icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
-      <div class="tb-card-actions">
-        <button type="button" class="tb-unlock-go" data-unlock="go"><span aria-hidden="true">✨</span> Unlock free for today</button>
-        <button type="button" class="tb-link" data-unlock="skip">Not now</button>
-      </div>
-      <a class="tb-modal-app" data-unlock="app" data-td-position="interest-modal" href="https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&amp;ct=webnew&amp;mt=8" rel="noopener" hidden>Also on iPhone, iPad &amp; Mac →</a>
-    </div>
-  </div>
 </section>
 
-<section id="interest" class="tb-section tb-wrap">
-  <div class="tb-card tb-interest-page" id="pro-card">
-    <p>The basic board is free. Extras are locked; you can try them all free for a day.</p>
-    <div class="tb-card-actions">
-      <button type="button" class="tb-pill" data-unlock-open>Try all extras free for today</button>
+<section id="pricing" class="tb-section tb-wrap tbu-pricing" aria-labelledby="pricing-title">
+  <div class="tbu-pricing-grid">
+    <div class="tbu-pricing-info">
+      <p class="tbu-eyebrow">Pricing</p>
+      <h2 id="pricing-title">One-time unlock, no subscription</h2>
+      <p class="tbu-pricing-sub">Everything in the free token board stays free. The unlock adds:</p>
+      <h3 class="tbu-pricing-h3">What’s included</h3>
+      <ul class="tbu-pricing-list">
+        <li>Your own photos as the reward and the background</li>
+        <li>Any token goal from 3 to 100</li>
+        <li>All 59 rewards</li>
+        <li>All 23 token icons</li>
+        <li>All 8 backgrounds</li>
+        <li>Works on every device you use — no device limit</li>
+        <li>Restore by license key or email</li>
+        <li>Lifetime, one payment</li>
+      </ul>
+    </div>
+    <div class="tbu-price-card" id="pro-card" data-tbu-card>
+      <p class="tbu-price-name">Unlock all extras</p>
+      <p class="tbu-price-amount">$19.99</p>
+      <p class="tbu-price-term">one-time</p>
+      <div class="tbu-price-actions" data-tbu-actions>
+        <button class="tbu-btn" type="button" data-tbu-unlock data-tbu-primary><span class="tbu-u1">Unlock all extras</span><span class="tbu-u2">$19.99 one-time</span></button>
+        <p class="tbu-trust"><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>One-time payment</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>no subscription</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>secure checkout by Link (Stripe)</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg>unlocks instantly, key also emailed</span></p>
+        <button class="tbu-ghost" type="button" data-tbu-restore>Already unlocked? Restore</button>
+        <p class="tbu-fine">Web version only — the iPhone, iPad and Mac app is sold separately in the App Store. Price in USD, plus tax where applicable. Your license key is shown after payment and sent by email. Charged by Link (Stripe). <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
+      </div>
     </div>
   </div>
 </section>
@@ -273,9 +287,8 @@ window.__tbLog = function (name, payload) {
     <button type="button" data-test="setTitlePrompt">set title</button>
     <button type="button" data-test="bgBlue">bg blue</button>
     <button type="button" data-test="bgWhite">bg white</button>
-    <button type="button" data-test="freeDayExpired">free day → expired</button>
-    <button type="button" data-test="nth3">nth → 3</button>
-    <button type="button" data-test="clearTried">clear tried</button>
+    <button type="button" data-test="unlockMock">unlock (mock key)</button>
+    <button type="button" data-test="lockAgain">lock again</button>
     <button type="button" data-test="sessionPlus3">session +3 min</button>
     <button type="button" data-test="resetHintSettings">reset hint + settings</button>
   </div>
