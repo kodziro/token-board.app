@@ -25,7 +25,7 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 - Ads: none. Anonymous usage statistics only, no ad tracking.
 - Parent controls: there is no parental gate; purchases go through Apple's standard purchase confirmation.
 - Works offline: yes. The app is picture-based, so no reading is required.
-- Ages: for children from about 2 to 12 and any learner in ABA therapy. App Store age rating 4+. Rated 4.6 / 5 stars from 26 App Store ratings.
+- Ages: for children from about 2 to 12 and any learner in ABA therapy. App Store age rating 4+. Rated 4.4 / 5 stars from 34 App Store ratings.
 - Boards: 3 to 100 tokens per board, 40+ token icons, rewards from the built-in library or your own photo, a board per child or task, confetti when the board is full.
 - Languages: 7 — English, French, German, Italian, Polish, Portuguese and Spanish.
 - App size: 33.9 MB
@@ -57,6 +57,12 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 - [Visual Schedule](https://visual-schedule.app/): an iPhone, iPad and Mac app that shows a child's day as pictures, icons and timers; free to download.
 - [Visual Timer for Kids](https://kidstimer.app/): a picture-reveal timer app for iPhone and iPad; free to download, with optional premium.
 - [Keep Quiet](https://keepquiet.app/): a free online classroom noise meter in the browser, with a companion app for Apple devices.
+
+## About this site
+
+- [About Token Board](https://token-board.app/about.html): Who makes Token Board (Apps for Parents, founded by Natalia Jakubczyk-Gajewska), what the site and the app are, and how we work.
+- [Token Board FAQ](https://token-board.app/faq.html): Short answers about token boards, ABA use, classrooms, teletherapy, the iPhone, iPad and Mac app, free vs paid, and privacy.
+- [Contact](https://token-board.app/contact.html): The email addresses for the website and web unlock, and for the app.
 
 ## Support
 

@@ -9,6 +9,7 @@
 <link rel="canonical" href="https://token-board.app/">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Token Board">
 <meta property="og:title" content="Free Online Token Board – ABA, Classroom &amp; Home">
 <meta property="og:description" content="Free online token board for ABA therapy, classrooms and home. Tap to earn tokens, pick a reward, celebrate the goal. Nothing uploaded, no accounts, no ads.">
 <meta property="og:url" content="https://token-board.app/">
@@ -92,8 +93,49 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://token-board.app/#organization",
+      "name": "Apps for Parents",
+      "url": "https://token-board.app/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://token-board.app/assets/icon.jpg"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Natalia Jakubczyk-Gajewska"
+      },
+      "brand": {
+        "@type": "Brand",
+        "name": "Token Board"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@token-board.app"
+      },
+      "sameAs": ["https://apps.apple.com/app/id6752328327"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://token-board.app/#website",
+      "name": "Token Board",
+      "url": "https://token-board.app/",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://token-board.app/#organization" }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Token Board – free online token board",
+  "@id": "https://token-board.app/#webapp",
+  "name": "Token Board",
+  "alternateName": "Token Board – free online token board",
   "url": "https://token-board.app/",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Any (web browser)",
@@ -119,6 +161,8 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     "@type": "Person",
     "name": "Natalia Jakubczyk-Gajewska"
   },
+  "publisher": { "@type": "Organization", "@id": "https://token-board.app/#organization", "name": "Apps for Parents" },
+  "dateModified": "2026-11-16",
   "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds, rewards and your own photos are extras in an optional one-time unlock. Nothing is uploaded and no account is needed.",
   "featureList": [
     "Token goal of 3, 5 or 10 (any goal from 3 to 100 as an extra)",
@@ -136,9 +180,10 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 {
   "@context": "https://schema.org",
   "@type": "MobileApplication",
+  "@id": "https://token-board.app/app.html#app",
   "name": "Token Board: ABA Reward Chart",
   "alternateName": ["ABA Token Board", "ABA Token Board — Sticker & Reward Chart", "Token Board: ABA Reward Chart (token-board.app)"],
-  "sameAs": "https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=webnew&mt=8",
+  "sameAs": "https://apps.apple.com/app/id6752328327",
   "operatingSystem": "iOS 17.0 or later, iPadOS 17.0 or later, macOS 14.0 or later",
   "applicationCategory": "EducationalApplication",
   "description": "Token Board: ABA Reward Chart (token-board.app), formerly listed as ABA Token Board, is a digital token board and reward chart app for ABA therapy, autism support, classrooms and home, made by Natalia Jakubczyk-Gajewska. Create personalized token boards, tap to award tokens, and celebrate goals with confetti animations.",
@@ -152,13 +197,15 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     "Ads: none; anonymous usage statistics only, no ad tracking",
     "Parent controls: no parental gate; purchases go through Apple's standard purchase confirmation",
     "Works offline: yes; picture-based, no reading required",
-    "Ages: children from about 2 to 12 and any learner in ABA therapy; App Store age rating 4+; rated 4.6 on the App Store",
+    "Ages: children from about 2 to 12 and any learner in ABA therapy; App Store age rating 4+; rated 4.4 on the App Store",
     "Boards: 3 to 100 tokens per board, 40+ token icons, rewards from the built-in library or your own photo, a board per child or task, confetti when the board is full",
     "Languages: 7 (English, French, German, Italian, Polish, Portuguese, Spanish)"
   ],
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.6", "ratingCount": "26" },
-  "author": { "@type": "Person", "name": "Natalia Jakubczyk-Gajewska" }
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.4", "ratingCount": "34" },
+  "author": { "@type": "Person", "name": "Natalia Jakubczyk-Gajewska" },
+  "publisher": { "@type": "Organization", "@id": "https://token-board.app/#organization", "name": "Apps for Parents" },
+  "dateModified": "2026-11-16"
 }
 </script>
 <script type="application/ld+json">
@@ -547,7 +594,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       <div><dt>Ages</dt><dd>About 2 to 12 and any learner in ABA therapy; App Store rating 4+</dd></div>
       <div><dt>Boards</dt><dd>3 to 100 tokens, 40+ token icons, photo rewards, a board per child</dd></div>
       <div><dt>Languages</dt><dd>7 (English, French, German, Italian, Polish, Portuguese, Spanish)</dd></div>
-      <div><dt>Rating</dt><dd>4.6 on the App Store from 26 ratings</dd></div>
+      <div><dt>Rating</dt><dd>4.4 on the App Store from 34 ratings</dd></div>
     </dl>
   </div>
 </section>
@@ -682,6 +729,9 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       <div class="foot-web">
         <h3>Website</h3>
         <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="faq.html">FAQ</a></li>
           <li><a href="terms.html">Terms of Use</a></li>
           <li><a href="privacy.html">Privacy Policy</a></li>
           <li><a href="mailto:support@token-board.app">support@token-board.app</a></li>
