@@ -19,11 +19,10 @@
 <meta name="twitter:image" content="https://token-board.app/assets/screenshot-1.jpg">
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
 <link rel="apple-touch-icon" href="assets/icon.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap"></noscript>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/fredoka-latin.woff2" crossorigin>
+<link rel="preload" as="style" href="assets/fonts/fonts.css?v=20261114a">
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a"></noscript>
 <style>
 /* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
    and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
@@ -65,7 +64,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
-/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Free extras today = light */
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
 .tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
 .tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
 .tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
@@ -73,6 +72,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-act-style>span{font-size:1.15em}
 .tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
 .tb-act-extras:hover{background:#EEF5FF}
+.tbu-has-key .tb-act-extras{display:none}
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -86,9 +86,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261025b">
-<link rel="stylesheet" href="tool.css?v=20261025b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261025b"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261114c">
+<link rel="stylesheet" href="tool.css?v=20261114c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261114c"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -99,23 +99,35 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   "operatingSystem": "Any (web browser)",
   "browserRequirements": "Requires JavaScript",
   "isAccessibleForFree": true,
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free online token board",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    {
+      "@type": "Offer",
+      "name": "One-time unlock: your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds",
+      "price": "19.99",
+      "priceCurrency": "USD",
+      "description": "One-time payment, no subscription; plus tax where applicable. Web version only; the iPhone, iPad and Mac app is sold separately in the App Store. Charged by Link (Stripe).",
+      "url": "https://token-board.app/#pricing"
+    }
+  ],
   "author": {
     "@type": "Person",
     "name": "Natalia Jakubczyk-Gajewska"
   },
-  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds and rewards are extras you can unlock free for a day. Nothing is uploaded and no account is needed.",
+  "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds, rewards and your own photos are extras in an optional one-time unlock. Nothing is uploaded and no account is needed.",
   "featureList": [
     "Token goal of 3, 5 or 10 (any goal from 3 to 100 as an extra)",
     "Emoji tokens: tap a slot to earn, tap again to remove",
     "Visual reward picker",
     "Celebration with confetti when the board is full",
     "Works on any screen: laptop, Chromebook, iPad, phone, interactive whiteboard, or shared in Zoom / Google Meet",
-    "Nothing is uploaded: the board stays in the browser, no account, no ads"
+    "Nothing is uploaded: the board stays in the browser, no account, no ads",
+    "Optional one-time unlock ($19.99 plus tax where applicable, no subscription): your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds"
   ],
   "image": "https://token-board.app/assets/screenshot-1.jpg"
 }
@@ -167,7 +179,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "How many tokens should I start with?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is an extra you can unlock free for a day. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
+        "text": "Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is part of the one-time unlock. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free First Then Board."
       }
     },
     {
@@ -199,7 +211,71 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "Is it free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras; you can unlock them all free for a day, as often as you like, while we test."
+        "text": "Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras: an optional one-time unlock for $19.99 plus tax where applicable adds them all, with no subscription. The free board keeps working without it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the one-time unlock include?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The one-time unlock adds your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds to the online token board. Everything in the free token board stays free. The unlock is for the web version at token-board.app; the iPhone, iPad and Mac app is sold separately in the App Store."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the unlock a subscription?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It is a one-time payment of $19.99 plus tax where applicable — the exact total is shown before you pay. There is no renewal; the unlock keeps working for as long as we run the service."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need an account?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. There is no account at token-board.app. Stripe asks for your email address at checkout to send the receipt; we use the same address to send your license key and to restore your purchase later."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I unlock the other devices I use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Open your restore link on that device, or type your license key — or the email address you paid with — into \"Already unlocked? Restore\". The restore link and the key are shown after payment and sent by email. The unlock is for the devices you use yourself, with no device limit; sharing the key with others is not allowed. The unlock is saved in the browser: Safari may forget it after a week, and shared or managed computers may clear it at sign-out — then open the restore link again. Your boards and photos stay on each device; the restore link unlocks the extras there, it does not copy a board."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "I lost my license key — what can I do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Type the email address you paid with into \"Already unlocked? Restore\": if that email paid, we send the restore link and the key again — check your spam folder too. Use the exact address you entered at checkout. No email after 10 minutes? Write to support@token-board.app."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the charge appear on my statement?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The unlock is sold and charged by Link (Stripe), the seller of the purchase. It appears on your statement as LINK.COM* APPS4PARENTS. Apps for Parents is the maker of Token Board. The price is in US dollars; your bank may convert it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I get a refund?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Write to support@token-board.app within 14 days of the purchase and we ask Stripe to refund you in full, no questions asked; the license is then cancelled and the key can no longer be used or restored. This is our own promise on top of the buyer terms of Link (Stripe)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the unlock include the iPhone, iPad and Mac app?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The unlock is for the web version at token-board.app only. The app \"Token Board: ABA Reward Chart\" for iPhone, iPad and Mac is free to download in the App Store; its optional premium, Token Board Plus, is bought separately there."
       }
     },
     {
@@ -207,16 +283,23 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       "name": "Is anything uploaded?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser."
+        "text": "Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser. If you buy the one-time unlock, we store the email address you paid with, your license key and the payment id, so we can deliver and restore your purchase; your board and photos still stay in this browser."
       }
     }
   ]
 }
 </script>
-<script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
-<script type="module" src="assets/appstore-click.js"></script>
-<link rel="modulepreload" href="assets/tool-signals.js?v=20261025b">
-<script type="module" src="tool.js?v=20261025b"></script>
+<script>
+try{if(/^TB-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(localStorage.getItem('tb-license')||''))document.documentElement.classList.add('tbu-has-key');}catch(e){}
+(function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
+var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;else if(u&&u.length<=200)o.session=u;
+if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__tbUnlock=o;
+p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}})();
+</script>
+<script src="assets/vendor/telemetrydeck.min.js?v=20261114d" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
+<script type="module" src="assets/appstore-click.js?v=20261114d"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261114d">
+<script type="module" src="tool.js?v=20261116a"></script>
 </head>
 <body>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -226,6 +309,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   <nav class="tb-nav" aria-label="Main">
     <a href="#board">Board</a>
     <a href="#guides">Guides</a>
+    <a href="#pricing">Pricing</a>
     <a href="#app">App</a>
   </nav>
 </header>
@@ -261,7 +345,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     </div>
     <div class="tb-actions" id="tb-actions">
       <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
-      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Free extras today</span></button>
+      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Unlock all extras</span></button>
     </div>
   </div>
 
@@ -273,16 +357,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close the style panel">×</button>
     </div>
     <div class="tb-panel-body" id="tb-panel-body">
-      <p class="tb-freeday" id="tb-freeday" hidden>✨ All extras unlocked until midnight.</p>
-      <div class="tb-ask" id="tb-ask" hidden>
-        <button type="button" class="tb-ask-x" data-ask="close" aria-label="Close the question">×</button>
-        <p class="tb-ask-q">Quick question: would you pay to keep extras unlocked?</p>
-        <div class="tb-ask-btns">
-          <button type="button" class="tb-ask-btn" data-ask="yes">Yes</button>
-          <button type="button" class="tb-ask-btn" data-ask="no">No</button>
-        </div>
-        <p class="tb-ask-thanks" id="tb-ask-thanks" role="status" aria-live="polite"></p>
-      </div>
+      <div class="tbu-card" id="tbu-card" hidden></div>
       <section class="tb-set">
         <label class="tb-set-label" for="tb-title-input">Board name</label>
         <input class="tb-input" id="tb-title-input" type="text" maxlength="40" autocomplete="off" spellcheck="false">
@@ -300,23 +375,23 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
           <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
           <span class="tb-goal-range" aria-hidden="true">3–100</span>
         </div>
-        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to try all extras free for today.</p>
+        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to unlock all extras.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-background" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
       </section>
       <section class="tb-set">
         <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
-        <p class="tb-hint">🔒 Locked — tap to try all extras free for today.</p>
+        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
         <div class="tb-grid" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
         <p class="tb-photo-msg" id="tb-photo-msg-reward" role="status" aria-live="polite"></p>
         <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
@@ -328,6 +403,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
           <span class="tb-switch-track" aria-hidden="true"></span>
         </label>
       </section>
+      <div class="tbu-line" id="tbu-line" hidden></div>
       <div class="tb-feedback" id="tb-feedback" hidden>
         <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
         <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
@@ -344,21 +420,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     <p class="tb-complete-title" id="tb-complete-title">You did it!</p>
     <p class="tb-complete-sub">Goal reached</p>
     <button type="button" class="tb-hooray" data-tb="hooray">Hooray!</button>
-    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden><span aria-hidden="true">✨</span> Try all extras free today</button>
+    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden><span aria-hidden="true">✨</span> Unlock all extras</button>
   </div>
   <input type="file" accept="image/*" id="tb-photo-input" class="tb-sr" tabindex="-1" aria-hidden="true">
-  <div class="tb-modal" id="tb-unlock" role="dialog" aria-modal="true" aria-labelledby="tb-unlock-title" aria-describedby="tb-unlock-text" hidden>
-    <div class="tb-modal-box">
-      <p class="tb-modal-preview" aria-hidden="true"><span>🦄</span><span>🚀</span><span>🌈</span><span>🦖</span><span>🎠</span><span>🖼️</span></p>
-      <h2 class="tb-modal-title" id="tb-unlock-title">Try all extras free for today</h2>
-      <p id="tb-unlock-text">All token goals, icons, backgrounds, rewards and your own photos are unlocked until midnight. Free while we test — your choices help us decide what to offer.</p>
-      <div class="tb-card-actions">
-        <button type="button" class="tb-unlock-go" data-unlock="go"><span aria-hidden="true">✨</span> Unlock free for today</button>
-        <button type="button" class="tb-link" data-unlock="skip">Not now</button>
-      </div>
-      <a class="tb-modal-app" data-unlock="app" data-td-position="interest-modal" href="https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&amp;ct=webnew&amp;mt=8" rel="noopener" hidden>Also on iPhone, iPad &amp; Mac →</a>
-    </div>
-  </div>
 </section>
 
 <section id="how" class="tb-section tb-wrap">
@@ -371,6 +435,38 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   <p class="tb-note">Works on any screen: laptop, Chromebook, iPad, phone, interactive whiteboard, or shared in Zoom / Google Meet.</p>
 </section>
 
+<section id="pricing" class="tb-section tb-wrap tbu-pricing" aria-labelledby="pricing-title">
+  <div class="tbu-pricing-grid">
+    <div class="tbu-pricing-info">
+      <p class="tbu-eyebrow">Pricing</p>
+      <h2 id="pricing-title">One-time unlock, no subscription</h2>
+      <p class="tbu-pricing-sub">Everything in the free token board stays free. The unlock adds:</p>
+      <h3 class="tbu-pricing-h3">What’s included</h3>
+      <ul class="tbu-pricing-list">
+        <li>Your own photos as the reward and the background</li>
+        <li>Any token goal from 3 to 100</li>
+        <li>All 59 rewards</li>
+        <li>All 23 token icons</li>
+        <li>All 8 backgrounds</li>
+        <li>Works on every device you use — no device limit</li>
+        <li>Restore by license key or email</li>
+        <li>Lifetime, one payment</li>
+      </ul>
+    </div>
+    <div class="tbu-price-card" id="pro-card" data-tbu-card>
+      <p class="tbu-price-name">Unlock all extras</p>
+      <p class="tbu-price-amount">$19.99</p>
+      <p class="tbu-price-term">one-time</p>
+      <div class="tbu-price-actions" data-tbu-actions>
+        <button class="tbu-btn" type="button" data-tbu-unlock data-tbu-primary><span class="tbu-u1">Unlock all extras</span><span class="tbu-u2">$19.99 one-time</span></button>
+        <p class="tbu-trust"><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>One-time payment</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>no subscription</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>secure checkout by Link (Stripe)</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg>unlocks instantly, key also emailed</span></p>
+        <button class="tbu-ghost" type="button" data-tbu-restore>Already unlocked? Restore</button>
+        <p class="tbu-fine">Web version only — the iPhone, iPad and Mac app is sold separately in the App Store. Price in USD, plus tax where applicable. Your license key is shown after payment and sent by email. Charged by Link (Stripe). <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="faq" class="tb-section tb-wrap tb-faq">
   <h2>Frequently asked questions</h2>
   <details id="faq-what" open>
@@ -379,7 +475,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-tokens">
     <summary>How many tokens should I start with?</summary>
-    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is an extra you can unlock free for a day. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
+    <p>Start with 3 to 5 tokens for a beginner, and 10 for most kids who already know the system. Set the goal with the 🎨 Style button under the board (Token goal): tap 3, 5 or 10; any other number from 3 to 100 is part of the one-time unlock. The first reward should come quickly, then you can raise the goal. If even 3 tokens are too many, use a First-Then board (one task, then the reward), for example our free <a data-out="first-then" data-td-position="faq" href="https://first-then.app/" rel="noopener">First Then Board</a>.</p>
   </details>
   <details id="faq-reward">
     <summary>How do I pick a reward (reinforcer)?</summary>
@@ -395,11 +491,43 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
   </details>
   <details id="faq-free">
     <summary>Is it free?</summary>
-    <p>Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras; you can unlock them all free for a day, as often as you like, while we test.</p>
+    <p>Yes. The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras: an optional one-time unlock for $19.99 plus tax where applicable adds them all, with no subscription. The free board keeps working without it.</p>
+  </details>
+  <details id="faq-unlock">
+    <summary>What does the one-time unlock include?</summary>
+    <p>The one-time unlock adds your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds to the online token board. Everything in the free token board stays free. The unlock is for the web version at token-board.app; the iPhone, iPad and Mac app is sold separately in the App Store.</p>
+  </details>
+  <details id="faq-subscription">
+    <summary>Is the unlock a subscription?</summary>
+    <p>No. It is a one-time payment of $19.99 plus tax where applicable — the exact total is shown before you pay. There is no renewal; the unlock keeps working for as long as we run the service.</p>
+  </details>
+  <details id="faq-account">
+    <summary>Do I need an account?</summary>
+    <p>No. There is no account at token-board.app. Stripe asks for your email address at checkout to send the receipt; we use the same address to send your license key and to restore your purchase later.</p>
+  </details>
+  <details id="faq-restore">
+    <summary>How do I unlock the other devices I use?</summary>
+    <p>Open your restore link on that device, or type your license key — or the email address you paid with — into "Already unlocked? Restore". The restore link and the key are shown after payment and sent by email. The unlock is for the devices you use yourself, with no device limit; sharing the key with others is not allowed. The unlock is saved in the browser: Safari may forget it after a week, and shared or managed computers may clear it at sign-out — then open the restore link again. Your boards and photos stay on each device; the restore link unlocks the extras there, it does not copy a board.</p>
+  </details>
+  <details id="faq-lost-key">
+    <summary>I lost my license key — what can I do?</summary>
+    <p>Type the email address you paid with into "Already unlocked? Restore": if that email paid, we send the restore link and the key again — check your spam folder too. Use the exact address you entered at checkout. No email after 10 minutes? Write to <a href="mailto:support@token-board.app">support@token-board.app</a>.</p>
+  </details>
+  <details id="faq-charge">
+    <summary>How does the charge appear on my statement?</summary>
+    <p>The unlock is sold and charged by Link (Stripe), the seller of the purchase. It appears on your statement as LINK.COM* APPS4PARENTS. Apps for Parents is the maker of Token Board. The price is in US dollars; your bank may convert it.</p>
+  </details>
+  <details id="faq-refund">
+    <summary>Can I get a refund?</summary>
+    <p>Yes. Write to <a href="mailto:support@token-board.app">support@token-board.app</a> within 14 days of the purchase and we ask Stripe to refund you in full, no questions asked; the license is then cancelled and the key can no longer be used or restored. This is our own promise on top of the buyer terms of Link (Stripe).</p>
+  </details>
+  <details id="faq-app-unlock">
+    <summary>Does the unlock include the iPhone, iPad and Mac app?</summary>
+    <p>No. The unlock is for the web version at token-board.app only. The app "Token Board: ABA Reward Chart" for iPhone, iPad and Mac is free to download in the App Store; its optional premium, Token Board Plus, is bought separately there.</p>
   </details>
   <details id="faq-privacy">
     <summary>Is anything uploaded?</summary>
-    <p>Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser.</p>
+    <p>Everything you set, including photos, is saved only in this browser on this device. Nothing is uploaded. There are no accounts and no ad tracking; anonymous usage statistics only. Removing a photo (×) deletes it from this browser. If you buy the one-time unlock, we store the email address you paid with, your license key and the payment id, so we can deliver and restore your purchase; your board and photos still stay in this browser.</p>
   </details>
 </section>
 
@@ -421,15 +549,6 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
       <div><dt>Languages</dt><dd>7 (English, French, German, Italian, Polish, Portuguese, Spanish)</dd></div>
       <div><dt>Rating</dt><dd>4.6 on the App Store from 26 ratings</dd></div>
     </dl>
-  </div>
-</section>
-
-<section id="interest" class="tb-section tb-wrap">
-  <div class="tb-card tb-interest-page" id="pro-card">
-    <p>The basic board is free. Extras are locked; you can try them all free for a day.</p>
-    <div class="tb-card-actions">
-      <button type="button" class="tb-pill" data-unlock-open>Try all extras free for today</button>
-    </div>
   </div>
 </section>
 
@@ -549,8 +668,6 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
         <ul>
           <li><a data-td-position="footer" href="https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&amp;ct=webnew&amp;mt=8" rel="noopener">Download on the App Store</a></li>
           <li><a href="mailto:AppsForParents@gmail.com">Support: AppsForParents@gmail.com</a></li>
-          <li><a href="https://sites.google.com/site/appsforparentsprivacy/" rel="noopener">Privacy Policy</a></li>
-          <li><a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" rel="noopener">Terms of Use</a></li>
         </ul>
       </div>
       <div>
@@ -562,9 +679,17 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
           <li><a data-out="keepquiet" data-td-position="footer" href="https://keepquiet.app/" rel="noopener">Keep Quiet – classroom noise meter</a></li>
         </ul>
       </div>
+      <div class="foot-web">
+        <h3>Website</h3>
+        <ul>
+          <li><a href="terms.html">Terms of Use</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="mailto:support@token-board.app">support@token-board.app</a></li>
+        </ul>
+      </div>
     </div>
     <div class="foot-note">
-      <p>© 2026 Natalia Jakubczyk-Gajewska. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-10-25">October 25, 2026</time>.</p>
+      <p>© 2026 Natalia Jakubczyk-Gajewska. Made by Apps for Parents. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-11-16">November 16, 2026</time>.</p>
     </div>
   </div>
 </footer>

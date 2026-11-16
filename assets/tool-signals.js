@@ -3,17 +3,18 @@
   Same SDK and mechanism as appstore-click.js (which stays self-contained because app.html and
   the 8 guides load it on their own; the small helpers are duplicated on purpose, not shared).
 
-  - Loads @telemetrydeck/sdk 2.0.4 from jsDelivr at runtime, lazily: after the window load event in
+  - Loads @telemetrydeck/sdk 2.0.4 from this site (assets/vendor/, self-hosted since S1, 2026-11-14) at runtime, lazily: after the window load event in
     an idle slot (2 s at most), so it never competes with first paint. If it fails, nothing is sent
     and the tool keeps working. Signals sent before the SDK is ready wait in a short queue.
   - send(name, payload): one signal, payload + { page, source, path, referrer }. Values are short
     bucketed strings. The board title is never sent (tool.js only passes what:'title').
   - Cookieless: clientUser is a random value per page load, never stored.
   - Test mode (signals flagged as test data in TelemetryDeck AND echoed to window.__tbLog):
-    ?test=1 in the URL, body[data-td-test="1"], localhost / 127.x / file:.
+    ?test=1 in the URL, body[data-td-test="1"], localhost / 127.x / file:, or the page load right after a
+    Stripe round trip that started in test mode (sessionStorage tb-test-return, see below).
 */
 const APP_ID = 'C2A6027C-00E1-4CC9-9FD5-C7A238880FF4';
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@telemetrydeck/sdk@2.0.4/dist/telemetrydeck.js';
+const SDK_URL = './vendor/telemetrydeck-sdk-2.0.4.js'; // relative to THIS module (assets/), so it works from every page
 const QUEUE_MAX = 50;
 
 export function pageSlug() {
@@ -45,7 +46,17 @@ function randomId() {
   return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
 }
 
+// Paid unlock (worker/README.md § 8.4.5, R32): unlock.js writes sessionStorage tb-test-return = "1" just before the
+// redirect to Stripe when the page was in test mode. It is read and deleted here ONCE, at module start; this page
+// load (the return from Stripe, which has no ?test=1) is then treated as test mode.
+let testReturn = false;
+try {
+  testReturn = sessionStorage.getItem('tb-test-return') === '1';
+  sessionStorage.removeItem('tb-test-return');
+} catch (e) { /* storage blocked */ }
+
 export function isTestMode() {
+  if (testReturn) return true;
   try { if (new URLSearchParams(location.search).get('test') === '1') return true; } catch (e) { /* ignore */ }
   try { if (document.body && document.body.getAttribute('data-td-test') === '1') return true; } catch (e) { /* ignore */ }
   return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) || location.protocol === 'file:';

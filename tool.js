@@ -1,18 +1,30 @@
 /*
   token-board.app — free online token board, tool script (ES module, no dependencies, no build).
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
+  Paid unlock contract: worker/README.md § 8 (browser side; § 8.4 = the offer dialog, entry points, signals).
 
+  Paid unlock (Step 5a, 2026-11-14, ?v=20261114a; Step 5b ?v=20261114b: the html class tbu-has-key follows "unlocked",
+    a failed load of unlock.js shows the status pill for 4 s; 5b-fix ?v=20261114c: retry on the return from payment /
+    a restore link, a line under the price card when its buttons could not load unlock.js; Step 6a ?v=20261115a: only UNLOCK_V —
+    unlock.js got the 15 s time limit for real Worker calls and the restore-field attributes; go-live ?v=20261116a: only UNLOCK_V —
+    the default API of unlock.js is the live API): the one-time unlock replaces the earlier trial of the extras.
+    "unlocked" = localStorage tb-license holds a key that passes the key regex (read synchronously at the start,
+    try/catch, in-memory fallback); it decides every lock (tiles, goal stepper + number input, photo tiles,
+    setters). A saved board keeps a locked item, a photo and a goal outside 3 / 5 / 10 until the user changes it.
+    Entry points: a locked tile / the locked goal stepper or number input (from "panel"), "✨ Unlock all extras"
+    under the board ("toolbar") and in the celebration ("celebration") → pro-click {item, from}, then the offer
+    dialog of unlock.js (loaded lazily: import('./unlock.js?v=' + UNLOCK_V) — never on first paint for a normal
+    visitor). The price card #pro-card in #pricing starts the payment directly ("card", no pro-click). When the
+    page becomes unlocked the lock badges pop off (reduced motion: a calm fade); nothing is applied automatically,
+    no sound. The ✨ buttons and the panel hints are hidden when unlocked. Gate: on body[data-tbu-gate]
+    (tool-test.html) without localStorage tb-dev = "1" there is no unlock UI at all (a locked tap only nudges).
+    Signals: tool-start and board-complete carry unlocked "yes" | "no"; unlock.js sends dialog-open, unlock-click,
+    unlock-success, unlock-cancel, unlock-fail, unlock-restore-attempt (never the key, the email, the device id
+    or the session id). localStorage tb-tried is deleted on load.
   Panel redesign (2026-10-21): light panel; groups Board name, Token goal, Token icon, Background, Reward,
     Sound. Token goal = any whole number 3–100 (quick picks 3 / 5 / 10 + stepper + number input); goals
     over 10 fit the slot grid to the free space (fitSlots). Board name is also editable in place on the
     board. Signals unchanged (slots = exact number as text). ?v=20261021a.
-  Free day (2026-10-21): 3 token icons, 2 backgrounds and 10 rewards are free; the rest is locked. A tap on a
-    locked item opens the unlock modal: "Unlock free for today" unlocks ALL extras until local midnight
-    (FREE_DAYS), free and renewable without limit (localStorage tb-tried {until, nth, used, asked}). A board
-    keeps a locked item until the user changes it (never break a board in use). From the 2nd free day on, the
-    panel asks once per free day "would you pay…?" (Yes / No / ×). Signals: try-today {item, group, nth},
-    try-use {item, group}, try-skip {item}, would-pay {answer, nth, os, answerNo, lang, unlockFrom}, appstore-click
-    {position:"interest-modal"} (appstore-click.js), board-complete {slots, tried}.
   Own photo (2026-10-21): the 🖼️ photo tile is the first tile in Reward and Background, locked like the other
     extras. The photo is read and shrunk on the device only (canvas → JPEG 0.8, reward ≤ 512 px, background
     ≤ 1600 px long side) and kept in IndexedDB "tb-photos" (fallback: localStorage tb-photo-<kind> as a data
@@ -20,32 +32,27 @@
     photo-set {kind}, photo-remove {kind}, photo-error {kind, reason} (never the image, its name or size).
 
   Easier to find (2026-10-23): the ⚙ corner button is gone. Under the board: "🎨 Style" (opens the panel,
-    title "Style your board") and "✨ Free extras today" (unlock modal, item/group "extras"; disabled with
-    "✨ Extras unlocked" during a free day); the row is hidden in fullscreen. A tap on the reward circle opens
-    the panel at Reward (panel body scrolls, the page does not). The board title is already editable in place,
-    so it does not open the panel. Empty-board hint "Tap a circle to add a token" until the first slot tap
-    (localStorage tb-hint). Celebration (outside a free day only): "Make the next board special — try all
-    extras free today". Signals: settings-open {from, nth, completed} once per page load (localStorage
-    tb-settings {count}); pro-click and try-today carry from "panel" | "toolbar" | "celebration" | "card".
-    ?v=20261023a.
-  Title + saved line (2026-10-23, ?v=20261023b; modal focus rings ?v=20261023c): default board title "I am working for" (was "My board"; a stored
+    title "Style your board") and the ✨ button (see Paid unlock); the row is hidden in fullscreen. A tap on the
+    reward circle opens the panel at Reward (panel body scrolls, the page does not). The board title is already
+    editable in place, so it does not open the panel. Empty-board hint "Tap a circle to add a token" until the
+    first slot tap (localStorage tb-hint). Signals: settings-open {from, nth, completed} once per page load
+    (localStorage tb-settings {count}). ?v=20261023a.
+  Title + saved line (2026-10-23, ?v=20261023b): default board title "I am working for" (was "My board"; a stored
     "My board" is shown as the new default, any other title stays). The hint line becomes "Your board is saved on
     this device" after the first slot tap and on later visits (hidden in fullscreen). Focus rings on the pills, the
-    reward circle, every panel button (× too) and the unlock modal buttons + link only for keyboard use (html.tb-pointer after a mouse / touch press, removed on any key).
+    reward circle and every panel button (× too) only for keyboard use (html.tb-pointer after a mouse / touch press, removed on any key).
   Fullscreen + celebration (2026-10-23, ?v=20261023d): fullscreen shows only the board card and the exit button (H1,
     privacy line, buttons row and the line under the circles hidden); the board may grow to 960 px and the circles
-    are fitted to the freed height (max 160 px for goals 3–10, 96 px above 10). Celebration: solid white
-    "✨ Try all extras free today" button, overlay .94; Hooray / extras button focus ring only after a key press.
+    are fitted to the freed height (max 160 px for goals 3–10, 96 px above 10). Celebration: overlay .94; Hooray /
+    ✨ button focus ring only after a key press.
   More locks (T15, 2026-10-25, ?v=20261025a; merged 2026-10-25):
     only the defaults are free — token ⭐, background white, reward 🎁, goals 3 / 5 / 10 (quick picks). Other icons,
     backgrounds and rewards are locked like before; the goal stepper − / + and the number input are locked too
     (read-only, ", locked" in the accessible name; a click / tap, Enter / Space, a typed key or a paste opens the
-    unlock modal, Tab focus alone does not). The free day unlocks them with the rest. T15b (?v=20261025b): the
-    lock badge only on the number input (not on − / +); the goal hint sits under the stepper row ("🔒 Other
-    numbers are locked — …"). A saved board keeps a
-    now-locked item or a goal outside 3 / 5 / 10. Signals: pro-click {item "goal-stepper", from "panel"} (then
-    try-today / try-skip with item "goal-stepper", group "goal"), try-use {item "goal", group "goal"} the first time a
-    free-day goal outside 3 / 5 / 10 is set; board-complete tried also counts such a goal.
+    offer, Tab focus alone does not). T15b (?v=20261025b): the lock badge only on the number input (not on − / +);
+    the goal hint sits under the stepper row ("🔒 Other numbers are locked — …"). A saved board keeps a
+    now-locked item or a goal outside 3 / 5 / 10. Signals: pro-click {item "goal-stepper", from "panel"};
+    board-complete tried also counts such a goal.
   T1 (2026-10-19): stage states + fullscreen + status pill + signal stub.
   T7 (2026-10-19): a11y — #tb-count (visually hidden, aria-live) says "N of M earned" on every fill/remove;
     celebration overlay keeps focus on Hooray (Tab trapped) and Escape = Hooray; the settings panel is
@@ -68,11 +75,12 @@
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
   Nothing personal is sent. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown),
-  tb-feedback {ts}, tb-visits {count, first}, tb-tried {until, nth, used, asked}, tb-hint ("1" = empty-board hint
-  done), tb-settings {count} (page loads with a panel open). IndexedDB: tb-photos (store photos: reward, background).
+  tb-feedback {ts}, tb-visits {count, first}, tb-hint ("1" = empty-board hint done), tb-settings {count} (page loads
+  with a panel open), tb-license (the license key; read here, written by unlock.js). IndexedDB: tb-photos (store
+  photos: reward, background).
 */
 
-import { send } from './assets/tool-signals.js?v=20261025b';
+import { send, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261114d';
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -221,7 +229,6 @@ function tone(freq, dur, at = 0, vol = 0.22) {
 }
 
 const tokenTone = () => tone(880, 0.12);
-const unlockChime = () => { tone(1318.51, 0.12, 0, 0.16); tone(1567.98, 0.12, 0.08, 0.16); tone(2093.0, 0.28, 0.16, 0.14); }; // only if Sound is on (audio())
 const celebrationTone = () => { tone(523.25, 0.15, 0); tone(659.25, 0.15, 0.15); tone(783.99, 0.15, 0.30); };
 
 /* ---------------- rendering ---------------- */
@@ -401,7 +408,7 @@ function noteTap() {
   idleTimer = setTimeout(endSession, IDLE_MS);
   if (!startSent) {
     startSent = true;
-    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag() });
+    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag(), unlocked: unlocked ? 'yes' : 'no' });
   }
 }
 
@@ -446,28 +453,6 @@ function sendVisit() {
 /* ---------------- celebration ---------------- */
 const CONFETTI_COLORS = ['#4DA3FF', '#7ED957', '#FFC443', '#FF7BAC', '#FFFFFF', '#FF8C42'];
 
-/** Small confetti burst from the centre of the screen (free-day unlock): 28 pieces, ~1.5 s; the goal-reached
-    celebration (60 falling pieces, overlay) stays the big one. Nothing under prefers-reduced-motion. */
-function burstConfetti() {
-  if (!stage || reducedMotion()) return;
-  const box = document.createElement('div');
-  box.className = 'tb-burst';
-  box.setAttribute('aria-hidden', 'true');
-  for (let n = 0; n < 28; n++) {
-    const p = document.createElement('i');
-    const a = Math.random() * Math.PI * 2;
-    const dist = 110 + Math.random() * 160;
-    p.style.setProperty('--dx', `${Math.round(Math.cos(a) * dist)}px`);
-    p.style.setProperty('--dy', `${Math.round(Math.sin(a) * dist + 50)}px`); // a little gravity
-    p.style.setProperty('--r', `${Math.round(Math.random() * 540 - 270)}deg`);
-    p.style.setProperty('--d', `${(1.1 + Math.random() * 0.4).toFixed(2)}s`);
-    p.style.setProperty('--c', CONFETTI_COLORS[n % CONFETTI_COLORS.length]);
-    box.appendChild(p);
-  }
-  stage.appendChild(box); // inside the stage, so it also shows in fullscreen
-  setTimeout(() => box.remove(), 1700);
-}
-
 function buildConfetti() {
   const box = overlay && overlay.querySelector('.tb-confetti');
   if (!box) return;
@@ -492,12 +477,12 @@ function celebrate() {
   if (!stage || model.filled.length !== model.slots) return;
   buildConfetti();
   completedThisLoad = true;
-  if (celebrateExtrasBtn) celebrateExtrasBtn.hidden = freeDayActive(); // only outside a free day
+  if (celebrateExtrasBtn) celebrateExtrasBtn.hidden = unlocked || !unlockUi; // only while locked
   stage.classList.add('is-complete');
   if (overlay) overlay.setAttribute('aria-hidden', 'false');
   celebrationTone();
   if (hoorayBtn) hoorayBtn.focus();
-  signal('board-complete', { slots: String(model.slots), tried: isFreeLook() ? 'no' : 'yes' });
+  signal('board-complete', { slots: String(model.slots), tried: isFreeLook() ? 'no' : 'yes', unlocked: unlocked ? 'yes' : 'no' });
 }
 
 function closeCelebration() {
@@ -522,12 +507,12 @@ function hooray() {
 export function getModel() { return JSON.parse(JSON.stringify(model)); }
 
 /** Token goal 3–100 (clamped). Earned tokens are kept; if the new goal is smaller, the count is clamped to it.
-    Outside a free day only the quick picks 3 / 5 / 10 can be set (T15). */
+    While locked only the quick picks 3 / 5 / 10 can be set (T15). */
 export function setSlots(n) {
   n = Math.round(Number(n));
   if (!Number.isFinite(n)) { syncPanel(); return; }
   n = Math.min(GOAL_MAX, Math.max(GOAL_MIN, n));
-  if (n === model.slots || !(FREE_GOALS.includes(n) || freeDayActive())) { syncPanel(); return; }
+  if (n === model.slots || !(FREE_GOALS.includes(n) || unlocked)) { syncPanel(); return; }
   const earned = Math.min(model.filled.length, n);
   const kept = model.filled.filter(i => i < n);
   for (let i = 0; kept.length < earned && i < n; i++) if (!kept.includes(i)) kept.push(i);
@@ -538,12 +523,12 @@ export function setSlots(n) {
 }
 export function setIcon(e) {
   const i = iconByEmoji(e);
-  if (!i || !(i.free || freeDayActive())) return; // locked icons cannot be selected
+  if (!i || !(i.free || unlocked)) return; // locked icons cannot be selected
   model.icon = e; save(); render();
 }
 export function setReward(e) {
   const r = rewardByEmoji(e);
-  if (!r || !(r.free || freeDayActive())) return; // locked rewards cannot be selected
+  if (!r || !(r.free || unlocked)) return; // locked rewards cannot be selected
   model.reward = e; model.rewardPhoto = false; save(); render();
 }
 export function setTitle(s) {
@@ -551,14 +536,14 @@ export function setTitle(s) {
 }
 export function setBackground(id) {
   const b = bgById(id);
-  if (!b || !(b.free || freeDayActive())) return; // locked / unknown backgrounds cannot be selected
+  if (!b || !(b.free || unlocked)) return; // locked / unknown backgrounds cannot be selected
   model.background = id; model.bgPhoto = false; save(); render();
 }
-/** Show / stop showing the own photo (kind "reward" | "background"). Turning it on needs a stored photo and a
-    free day, or a board that already uses it. */
+/** Show / stop showing the own photo (kind "reward" | "background"). Turning it on needs a stored photo and the
+    unlock, or a board that already uses it. */
 export function setPhotoOn(kind, on) {
   const key = kind === 'reward' ? 'rewardPhoto' : 'bgPhoto';
-  if (on && !(photoUrl[kind] && (freeDayActive() || model[key]))) return;
+  if (on && !(photoUrl[kind] && (unlocked || model[key]))) return;
   model[key] = !!on; save(); render();
 }
 export function setSound(on) {
@@ -619,7 +604,8 @@ export function openPanel(opts) {
   else { panel.removeAttribute('role'); panel.removeAttribute('aria-modal'); }
   if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'true');
   maybeShowFeedback();
-  syncPanel(); // locks may have changed since the last render (local midnight)
+  syncPanel();
+  loadUnlock(); // the panel line (unlocked) and a fast first tap on a locked tile
   fitSlots();
   noteSettingsOpen(o.from || 'button');
   if (o.section) { showSection(o.section); return; }
@@ -634,7 +620,7 @@ export function closePanel() {
   panel.setAttribute('aria-hidden', 'true');
   panel.removeAttribute('role'); panel.removeAttribute('aria-modal');
   if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
-  if (askThanks) { askThanks = false; syncAsk(freeDayActive()); }
+  if (unlockCtl) unlockCtl.panelClosed(); // "Show" (the key) lasts until the panel closes
   fitSlots();
   const back = (lastFocus && document.contains(lastFocus)) ? lastFocus : settingsBtn;
   if (back && typeof back.focus === 'function') back.focus();
@@ -655,7 +641,7 @@ function trapFocus(ev) {
 
 
 /* =====================================================================
-   Settings panel content (T3): grids, controls, locked items, interest card, feedback
+   Settings panel content (T3): grids, controls, locked items, feedback
    ===================================================================== */
 const panelBody = document.getElementById('tb-panel-body');
 const LOCK_SVG = '<span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span>';
@@ -664,47 +650,31 @@ let settingSignal = what => signal('setting-change', { what });
 let goalSignalTimer = 0;
 const goalSignal = () => { clearTimeout(goalSignalTimer); goalSignalTimer = setTimeout(() => settingSignal('slots'), 1000); };
 
-/* ---- free day: one tap unlocks ALL extras until local midnight; free, renewable any time, no limit ---- */
-const FREE_DAYS = 1; // length of one free unlock in days; 1 = until tonight's local midnight
-const TRIED_KEY = 'tb-tried'; // {until: last free day "YYYY-MM-DD" (local), nth: free days used, used: items tried in this free day,
-                              //  asked: nth of the free day in which the would-pay question was answered or closed,
-                              //  answers: would-pay answers given in this browser (× does not count),
-                              //  unlockFrom: from of the unlock that started the current free day (2026-10-23)}
-const UNLOCK_FROM = ['panel', 'toolbar', 'celebration', 'card'];
-const GROUP = { icon: 'token', bg: 'background', reward: 'reward', 'photo-reward': 'photo-reward', 'photo-bg': 'photo-bg' };
+/* ---- paid unlock (one-time; worker/README.md § 8.4): ONE source of truth = a valid license key in localStorage
+   "tb-license". It is read synchronously here (try/catch, in-memory fallback, R26); no network call decides it.
+   unlock.js (the offer dialog, the payment, restore) is loaded lazily and calls unlockApi.setUnlocked(). ---- */
+const LICENSE_KEY = 'tb-license';
+// the key regex of worker/README.md § 7.1 (unlock.js has the same one; tests/unlock.mjs compares them)
+const KEY_RE = /^TB-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
+const lsMem = {}; // in-memory fallback when storage is blocked (private window): lasts until reload
+function lsGet(k) {
+  try { const v = localStorage.getItem(k); if (v !== null) return v; } catch (e) { /* storage blocked */ }
+  return Object.prototype.hasOwnProperty.call(lsMem, k) ? lsMem[k] : null;
+}
+function lsSet(k, v) {
+  lsMem[k] = String(v);
+  try { localStorage.setItem(k, String(v)); } catch (e) { /* storage blocked: this page only */ }
+}
+const readUnlocked = () => KEY_RE.test(lsGet(LICENSE_KEY) || '');
+let unlocked = readUnlocked();
+try { localStorage.removeItem('tb-tried'); } catch (e) { /* ignore */ } // data of the earlier trial of the extras (removed 2026-11-14): an active trial ends here
+// Gate (tool-test.html = body[data-tbu-gate]): without localStorage tb-dev = "1" there is no unlock UI at all
+// (the ✨ buttons and the pricing section are hidden, a locked tap only nudges, unlock.js is never loaded).
+const unlockUi = !(document.body && document.body.hasAttribute('data-tbu-gate')) || lsGet('tb-dev') === '1';
 // = pro-click item: token-<id> | bg-<id> | reward-<id> | photo-reward | photo-bg
 const itemKey = (kind, id) => kind.startsWith('photo-') ? kind : `${kind === 'bg' ? 'bg' : kind === 'icon' ? 'token' : 'reward'}-${id}`;
-const dateStr = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-let triedMem = null; // also works when storage is blocked (private window): then it lasts until reload
-function tried() {
-  if (triedMem) return triedMem;
-  let v = null;
-  try { v = JSON.parse(localStorage.getItem(TRIED_KEY) || 'null'); } catch (e) { v = null; }
-  triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0, unlockFrom: '' };
-  if (v && typeof v === 'object') {
-    if (typeof v.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.until)) triedMem.until = v.until;
-    if (Number.isInteger(v.nth) && v.nth >= 0) triedMem.nth = v.nth;
-    if (Array.isArray(v.used)) triedMem.used = v.used.filter(x => typeof x === 'string').slice(0, 200);
-    if (Number.isInteger(v.asked) && v.asked >= 0) triedMem.asked = v.asked;
-    if (Number.isInteger(v.answers) && v.answers >= 0) triedMem.answers = v.answers;
-    if (UNLOCK_FROM.includes(v.unlockFrom)) triedMem.unlockFrom = v.unlockFrom;
-  }
-  return triedMem;
-}
-function saveTried() {
-  try { localStorage.setItem(TRIED_KEY, JSON.stringify(tried())); } catch (e) { /* storage blocked: this page only */ }
-}
-const freeDayActive = () => { const u = tried().until; return !!u && dateStr(new Date()) <= u; };
-function startFreeDay(from) {
-  const t = tried();
-  t.unlockFrom = UNLOCK_FROM.includes(from) ? from : '';
-  const end = new Date();
-  end.setDate(end.getDate() + FREE_DAYS - 1);
-  t.until = dateStr(end); t.nth += 1; t.used = [];
-  saveTried();
-}
 
-/** Coarse OS from the user agent (no fingerprinting): shows the App Store link; sent as os in tool-start / would-pay.
+/** Coarse OS from the user agent (no fingerprinting): sent as os in tool-start.
     (Named os, not platform: TelemetryDeck's page views already fill a platform column with its own values.) */
 function osName() {
   const ua = navigator.userAgent || '';
@@ -717,7 +687,6 @@ function osName() {
   if (/Linux/.test(ua)) return 'linux';
   return 'other';
 }
-const isApple = () => ['ios', 'ipados', 'mac'].includes(osName());
 /** Browser language setting (e.g. "en-US"), not a location; "other" when empty or longer than 10 characters. */
 const langTag = () => { const l = String((navigator && navigator.language) || '').trim(); return l && l.length <= 10 ? l : 'other'; };
 
@@ -748,21 +717,18 @@ function buildPanel() {
 }
 
 /** Panel controls reflect the model (called by render()). A locked item is shown selected only when the board
-    still uses it (tried on an earlier day, or saved before it was locked). */
+    still uses it (saved before it was locked, or while another browser state had it unlocked). */
 function syncPanel() {
-  syncProCard();
+  syncUnlockButtons();
   if (!panelBody) return;
   const input = document.getElementById('tb-title-input');
   if (input && document.activeElement !== input) input.value = model.title;
   const iconId = (iconByEmoji(model.icon) || ICONS[0]).id;
   const rewardId = photoShown('reward') ? 'photo' : (rewardByEmoji(model.reward) || {}).id;
   const bgId = photoShown('background') ? 'photo' : model.background;
-  const active = freeDayActive();
+  const active = unlocked; // every extra is usable
   syncPhotoTiles(active);
-  const line = document.getElementById('tb-freeday');
-  if (line) line.hidden = !active;
   panelBody.querySelectorAll('.tb-hint').forEach(h => { h.hidden = active; });
-  syncAsk(active);
   panelBody.querySelectorAll('.tb-thumb').forEach(b => {
     const locked = !b.dataset.free && !active;
     b.classList.toggle('is-locked', locked);
@@ -800,8 +766,7 @@ function nudge(btn) {
   setTimeout(() => btn.classList.remove('is-nudge'), 700);
 }
 
-/** Apply a tile that may be used (free, or during a free day); one setting-change when the value changes,
-    plus try-use the first time a locked item is chosen in this free day. */
+/** Apply a tile that may be used (free, or unlocked); one setting-change when the value changes. */
 function selectTile(t) {
   if (t.dataset.kind === 'photo-reward' || t.dataset.kind === 'photo-bg') { selectPhotoTile(t); return; }
   const id = t.dataset.id;
@@ -809,35 +774,15 @@ function selectTile(t) {
   if (t.dataset.kind === 'icon') { const i = ICONS.find(x => x.id === id); if (i && i.emoji !== model.icon) { setIcon(i.emoji); changed = model.icon === i.emoji; if (changed) settingSignal('icon'); } }
   else if (t.dataset.kind === 'bg') { if (id !== model.background || model.bgPhoto) { setBackground(id); changed = model.background === id; if (changed) settingSignal('background'); } }
   else if (t.dataset.kind === 'reward') { const r = REWARDS.find(x => x.id === id); if (r && (r.emoji !== model.reward || model.rewardPhoto)) { setReward(r.emoji); changed = model.reward === r.emoji && !model.rewardPhoto; if (changed) settingSignal('reward'); } }
-  if (t.dataset.kind === 'bg') changed = changed && !model.bgPhoto;
-  if (changed) noteTryUse(t);
 }
-/** try-use: the first time a locked item is chosen during the current free day. */
-function noteTryUse(t) {
-  if (!t || t.dataset.free) return;
-  noteTry(t.dataset.item, GROUP[t.dataset.kind]);
-}
-function noteTry(item, group) {
-  if (!freeDayActive()) return;
-  const tr = tried();
-  if (tr.used.includes(item)) return;
-  tr.used.push(item); saveTried();
-  signal('try-use', { item, group });
-}
-/** After the stepper / number input changed the goal: setting-change (debounced) + try-use {item "goal"} the first
-    time a goal outside 3 / 5 / 10 is set in this free day. */
-function goalChanged() {
-  goalSignal();
-  if (!FREE_GOALS.includes(model.slots)) noteTry('goal', 'goal');
-}
-/** One step of − / + (also applied after the unlock that the tap opened). */
+/** One step of − / +. */
 function stepGoal(b) {
   const before = model.slots;
   setSlots(model.slots + Number(b.dataset.goal));
-  if (model.slots !== before) goalChanged();
+  if (model.slots !== before) goalSignal();
   if (b.disabled) { const goal = document.getElementById('tb-goal-input'); if (goal) goal.focus(); } // keep focus in the panel at 3 / 100
 }
-const goalLocked = () => { syncPanel(); return !freeDayActive(); }; // re-check first (midnight may have passed)
+const goalLocked = () => !unlocked;
 
 /* =====================================================================
    Own photo (reward + background): read and shrunk on the device, kept in this browser only
@@ -977,7 +922,7 @@ function photoMsg(kind, text, ms = 6000) {
   photoMsgUntil[kind] = text ? Date.now() + ms : 0;
   if (text && ms > 0) setTimeout(() => { if (Date.now() >= photoMsgUntil[kind]) { photoMsgUntil[kind] = 0; syncPanel(); } }, ms + 50);
 }
-/** Thumbnail, label, remove button and the "saved" hint (photo kept, but the free day is over). */
+/** Thumbnail, label, remove button and the "saved" hint (photo kept in this browser, but locked). */
 function syncPhotoTiles(active) {
   ['reward', 'background'].forEach(kind => {
     const tile = panelBody.querySelector(`.tb-thumb[data-kind="${kind === 'reward' ? 'photo-reward' : 'photo-bg'}"]`);
@@ -996,7 +941,7 @@ function syncPhotoTiles(active) {
     const el = document.getElementById(`tb-photo-msg-${kind}`);
     if (!el) return;
     el.classList.remove('is-error');
-    el.textContent = url && !active && !photoShown(kind) ? 'Your photo is saved in this browser. Tap to use it again.' : '';
+    el.textContent = url && !active && !photoShown(kind) ? 'Your photo is saved in this browser. Unlock all extras to use it again.' : '';
   });
 }
 
@@ -1014,7 +959,7 @@ function selectPhotoTile(t) {
   const kind = t.dataset.kind === 'photo-reward' ? 'reward' : 'background';
   if (!photoUrl[kind] || photoShown(kind)) { pickPhoto(kind, t); return; }
   setPhotoOn(kind, true);
-  if (photoShown(kind)) { settingSignal(kind); noteTryUse(t); }
+  if (photoShown(kind)) settingSignal(kind);
 }
 async function onPhotoPicked(input) {
   const file = input.files && input.files[0];
@@ -1033,7 +978,6 @@ async function onPhotoPicked(input) {
     save(); render();
     signal('photo-set', { kind });
     settingSignal(kind);
-    noteTryUse(tile);
   } catch (e) {
     const reason = e instanceof PhotoError ? e.reason : isQuota(e) ? 'quota' : 'other';
     photoMsg(kind, PHOTO_TEXT[reason] || PHOTO_TEXT.other);
@@ -1057,155 +1001,152 @@ async function loadPhotos() {
   render();
 }
 
-/** Locked tile: pro-click as before, then the unlock modal. */
+/* =====================================================================
+   Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
+   ===================================================================== */
+const UNLOCK_V = '20261116a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const importUnlock = () => import('./unlock.js?v=' + UNLOCK_V);
+let unlockCtl = null;     // the controller returned by unlock.js init(api)
+let unlockLoading = null; // the one import promise
+/** Load unlock.js once (never on a gated page without tb-dev). Resolves to the controller, or null. */
+function loadUnlock() {
+  if (!unlockUi) return Promise.resolve(null);
+  if (unlockCtl) return Promise.resolve(unlockCtl);
+  if (!unlockLoading) {
+    unlockLoading = importUnlock()
+      .then(m => { unlockCtl = m.default(unlockApi); clearCardLoadFail(); return unlockCtl; })
+      .catch(() => { unlockLoading = null; return null; }); // e.g. offline: the next tap tries again
+  }
+  return unlockLoading;
+}
+/** Open the offer dialog. from = panel | toolbar | celebration; back = the element that gets the focus back. */
+function openOffer(from, back) {
+  // pending: the page came back from payment / a restore link and unlock.js is not in yet. Its init handles that
+  // session or key itself (and opens the dialog), so this tap must not open a second view or start a second request.
+  const pending = !!window.__tbUnlock;
+  loadUnlock().then(c => {
+    if (!c) { unlockLoadFailed(); return; }
+    if (!pending) c.show(from, back || null);
+  });
+}
+/** unlock.js could not be loaded after a tap on an entry point (offline): the status pill for 4 s. No signal;
+    the next tap tries the import again (loadUnlock forgets a failed promise). */
+const LOAD_FAILED_TEXT = 'Could not load the unlock — check your connection and try again.';
+function unlockLoadFailed() { showStatus(LOAD_FAILED_TEXT, 4000); }
+/** The same text as a small line under the price card's buttons (the pill above the board is out of view there). */
+function cardLoadFailed(card) {
+  let line = card.querySelector('.tbu-load-fail');
+  if (!line) {
+    line = document.createElement('p');
+    line.className = 'tbu-msg is-error tbu-load-fail';
+    line.setAttribute('role', 'status');
+    const after = card.querySelector('[data-tbu-restore]');
+    if (after && after.parentNode) after.parentNode.insertBefore(line, after.nextSibling);
+    else (card.querySelector('[data-tbu-actions]') || card).appendChild(line);
+  }
+  line.textContent = LOAD_FAILED_TEXT;
+}
+function clearCardLoadFail() { document.querySelectorAll('.tbu-load-fail').forEach(n => n.remove()); }
+/** The page came back from payment or was opened by a restore link (window.__tbUnlock) and unlock.js does not load:
+    retry up to 3 times, 2 s apart; then the status pill for 6 s. No signal. window.__tbUnlock stays as it is (only
+    unlock.js clears it), so a later load — the next tap, the next panel open, the "online" event — handles it. */
+const RETURN_RETRIES = 3, RETURN_RETRY_MS = 2000;
+function loadForReturn(attempt) {
+  loadUnlock().then(c => {
+    if (c || !window.__tbUnlock) return; // loaded (also by a tap in the meantime)
+    if (attempt < RETURN_RETRIES) { setTimeout(() => loadForReturn(attempt + 1), RETURN_RETRY_MS); return; }
+    showStatus(LOAD_FAILED_TEXT, 6000);
+  });
+}
+/** Locked tile: pro-click as before, nudge, then the offer dialog. Gated page without tb-dev: only the nudge. */
 function onLockedTap(btn) {
-  signal('pro-click', { item: btn.dataset.item, from: 'panel' });
+  if (unlockUi) signal('pro-click', { item: btn.dataset.item, from: 'panel' });
   nudge(btn);
-  openUnlock(btn.dataset.item, GROUP[btn.dataset.kind], btn, null, 'panel');
+  if (unlockUi) openOffer('panel', btn);
 }
-/** Locked goal stepper / number input (T15): pro-click {item "goal-stepper"}, then the unlock modal. */
+/** Locked goal stepper / number input (T15): pro-click {item "goal-stepper"}, then the offer dialog. */
 function onGoalLocked(el) {
+  if (!unlockUi) { nudge(el); return; }
   signal('pro-click', { item: 'goal-stepper', from: 'panel' });
-  openUnlock('goal-stepper', 'goal', el, null, 'panel');
+  openOffer('panel', el);
 }
-/** The ✨ buttons (under the board, celebration, #pro-card): pro-click {item "extras", from}, then the modal. */
+/** The ✨ buttons (under the board, celebration): pro-click {item "extras", from}, then the offer dialog. */
 function openExtras(from, back) {
+  if (!unlockUi || unlocked) return;
   signal('pro-click', { item: 'extras', from });
-  openUnlock('extras', 'extras', null, back, from);
+  openOffer(from, back);
 }
 
-/* ---- unlock modal (#tb-unlock): centred over the page and the phone sheet; role=dialog, focus trapped ---- */
-const unlockEl = document.getElementById('tb-unlock');
-let unlockFor = { item: '', group: '', tile: null, back: null, from: 'panel' };
-const unlockOpen = () => !!(unlockEl && !unlockEl.hidden);
-function openUnlock(item, group, tile, back, from) {
-  if (!unlockEl) return;
-  unlockFor = { item, group, tile: tile || null, back: back || tile || document.activeElement, from: from || 'panel' };
-  const app = unlockEl.querySelector('[data-unlock="app"]');
-  if (app) app.hidden = !isApple();
-  unlockEl.hidden = false;
-  const go = unlockEl.querySelector('[data-unlock="go"]');
-  if (go) go.focus();
+/** The page became unlocked (unlock.js stored the key): flip the flag, pop the lock badges, re-sync the panel and
+    the buttons. Nothing is applied automatically (no tapped tile, no stepper step). */
+function setUnlocked() {
+  const was = unlocked;
+  unlocked = readUnlocked();
+  if (unlocked && !was) celebrateUnlock(panelBody ? Array.from(panelBody.querySelectorAll('.tb-thumb.is-locked')) : []);
+  syncPanel(); // also the ✨ buttons
 }
-function closeUnlock() {
-  if (!unlockOpen()) return;
-  unlockEl.hidden = true;
-  const back = unlockFor.back;
-  if (back && document.contains(back) && typeof back.focus === 'function') back.focus();
-}
-let unlockBusy = false; // between "Unlock" and the modal closing (preview bounce)
-function onUnlockAction(action) {
-  if (unlockBusy) return;
-  const { item, group, tile, from } = unlockFor;
-  if (action === 'go') {
-    startFreeDay(from);
-    signal('try-today', { item, group, nth: String(tried().nth), from });
-    if (!reducedMotion()) { // the preview emoji bounce once with the confetti, then the modal closes
-      unlockBusy = true;
-      burstConfetti();
-      unlockEl.classList.add('is-bouncing');
-      setTimeout(() => { unlockEl.classList.remove('is-bouncing'); unlockBusy = false; finishUnlock(tile, false); }, 450);
-      return;
-    }
-    finishUnlock(tile, true);
-  } else if (action === 'skip') {
-    signal('try-skip', { item });
-    closeUnlock();
-  } // "app" is a plain App Store link: appstore-click.js sends appstore-click {position:"interest-modal"}
-}
-function finishUnlock(tile, withBurst) {
-  const wasLocked = panelBody ? Array.from(panelBody.querySelectorAll('.tb-thumb.is-locked')) : [];
-  closeUnlock(); // focus goes back to the tapped tile (or the #pro-card button)
-  celebrateUnlock(wasLocked, withBurst);
-  syncPanel(); // also the ✨ buttons (toolbar + #pro-card)
-  if (celebrateExtrasBtn && !celebrateExtrasBtn.hidden) { // free day now: no celebration offer
-    celebrateExtrasBtn.hidden = true;
-    if (stage.classList.contains('is-complete') && hoorayBtn) hoorayBtn.focus();
-  }
-  if (tile && document.contains(tile)) { // apply the tapped item (it stays focused, now selected)
-    if (tile.dataset.goal) stepGoal(tile); // − / +: do the step; the number input just gets focus back
-    else if (tile.classList.contains('tb-thumb')) selectTile(tile);
-  }
-}
-/** Unlock celebration: confetti burst, chime (Sound on only), lock badges pop off one after another (< 1 s in
-    total) with a sparkle, the "✨ unlocked" line fades in with a glow. Reduced motion: only a calm fade.
-    Purely visual: classes are added before syncPanel() removes .is-locked and cleared after 1.2 s; the
-    panel stays usable all the time. */
-function celebrateUnlock(tiles, withBurst) {
-  if (withBurst) burstConfetti(); // (already started with the modal bounce otherwise)
-  unlockChime();
+/** Unlock animation: the lock badges pop off one after another (< 1 s in total) with a sparkle. Reduced motion:
+    only a calm fade. No sound, no confetti here. Purely visual: the classes are added before syncPanel() removes
+    .is-locked and cleared after 1.3 s; the panel stays usable all the time. */
+function celebrateUnlock(tiles) {
   const calm = reducedMotion();
   const step = tiles.length > 1 ? Math.min(40, 550 / (tiles.length - 1)) : 0; // last pop starts by 550 ms
   tiles.forEach((t, n) => {
     t.style.setProperty('--d', `${Math.round(n * step)}ms`);
     t.classList.add(calm ? 'is-fading' : 'is-unlocking');
   });
-  const line = document.getElementById('tb-freeday');
-  if (line) line.classList.add('is-new');
   setTimeout(() => {
     tiles.forEach(t => { t.classList.remove('is-unlocking', 'is-fading'); t.style.removeProperty('--d'); });
-    if (line) line.classList.remove('is-new');
   }, 1300);
 }
 
-/* ---- would-pay question: in the panel, from the 2nd free day on, once per free day ---- */
-let askThanks = false; // the thank-you line stays until the panel closes
-function syncAsk(active) {
-  const box = document.getElementById('tb-ask');
-  if (!box) return;
-  const t = tried();
-  const answered = t.asked === t.nth;
-  box.hidden = !(active && t.nth >= 2 && (!answered || askThanks));
-  box.querySelectorAll('[data-ask]').forEach(b => { b.hidden = answered; });
-  if (!answered) { const th = document.getElementById('tb-ask-thanks'); if (th) th.textContent = ''; }
-}
-function onAsk(action) {
-  const t = tried();
-  t.asked = t.nth;
-  if (action === 'yes' || action === 'no') t.answers += 1; // answerNo: 1 = first answer in this browser
-  saveTried();
-  if (action === 'yes' || action === 'no') {
-    // unlockFrom "unknown" = a free day started before 2026-10-23 (or set by a test helper)
-    signal('would-pay', { answer: action, nth: String(t.nth), os: osName(), answerNo: String(t.answers), lang: langTag(), unlockFrom: t.unlockFrom || 'unknown' });
-    askThanks = true;
-    const th = document.getElementById('tb-ask-thanks');
-    if (th) th.textContent = action === 'yes' ? 'Thanks! Paid plans are not available yet — this helps us decide.' : 'Thanks for telling us!';
-  } else askThanks = false; // × closes without an answer and without a signal
-  syncAsk(freeDayActive());
-}
-
-function wireUnlock() {
-  if (!unlockEl) return;
-  unlockEl.addEventListener('click', ev => {
-    if (ev.target === unlockEl) { onUnlockAction('skip'); return; } // tap on the backdrop = Not now
-    const btn = ev.target && ev.target.closest ? ev.target.closest('[data-unlock]') : null;
-    if (btn && unlockEl.contains(btn)) onUnlockAction(btn.dataset.unlock);
-  });
-}
-function trapUnlock(ev) {
-  if (ev.key === 'Escape') { ev.preventDefault(); onUnlockAction('skip'); return; }
-  if (ev.key !== 'Tab') return;
-  const items = Array.from(unlockEl.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
-  if (!items.length) { ev.preventDefault(); return; }
-  const first = items[0], last = items[items.length - 1];
-  if (ev.shiftKey && (document.activeElement === first || !unlockEl.contains(document.activeElement))) { ev.preventDefault(); last.focus(); }
-  else if (!ev.shiftKey && (document.activeElement === last || !unlockEl.contains(document.activeElement))) { ev.preventDefault(); first.focus(); }
-}
+/** The bridge object for unlock.js init(api) — worker/README.md § 8.4.4. */
+const unlockApi = {
+  signal,
+  el(tag, cls) { const n = document.createElement(tag); if (cls) n.className = cls; return n; },
+  button(cls, label, text) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    if (cls) b.className = cls;
+    if (label) b.setAttribute('aria-label', label);
+    if (text) b.textContent = text;
+    return b;
+  },
+  lsGet, lsSet,
+  get reducedMotion() { return reducedMotion(); },
+  isFullscreen: () => isFullscreen(),
+  // the stage while it is in NATIVE fullscreen (the dialog is attached inside it then), else null
+  fullscreenHost: () => (stage && (document.fullscreenElement === stage || document.webkitFullscreenElement === stage) ? stage : null),
+  isTestMode: () => { try { return signalsTestMode(); } catch (e) { return false; } },
+  /** Just before the redirect to Stripe (R30): leave native fullscreen and the expanded mode. */
+  pauseForRedirect() {
+    try { if (nativeActive()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) { /* ignore */ }
+    try { if (expanded) exitExpanded(true); } catch (e) { /* ignore */ } // true: no history.back() right before a navigation
+  },
+  setUnlocked,
+  openPanel: () => openPanel({ from: 'button' }),
+  /** "Style your board →": the panel at its top, focus on its first control. Closes nothing itself. */
+  showStyle() {
+    if (!stage || !panel) return;
+    if (!stage.classList.contains('is-settings')) { openPanel({ from: 'button' }); return; }
+    if (panelBody) panelBody.scrollTop = 0;
+    const first = panel.querySelector(FOCUSABLE);
+    if (first) first.focus();
+  },
+  mount: () => ({ line: document.getElementById('tbu-line'), card: document.getElementById('tbu-card') })
+};
 
 function wirePanel() {
   if (!panelBody) return;
   buildPanel();
   panelBody.addEventListener('click', ev => {
-    const t = ev.target && ev.target.closest ? ev.target.closest('.tb-thumb, [data-fb], [data-ask], [data-photo-remove]') : null;
+    const t = ev.target && ev.target.closest ? ev.target.closest('.tb-thumb, [data-fb], [data-photo-remove]') : null;
     if (!t) return;
     if (t.hasAttribute('data-photo-remove')) { removePhoto(t.dataset.photoRemove); return; }
     if (t.hasAttribute('data-fb')) { onFeedback(t.getAttribute('data-fb')); return; }
-    if (t.hasAttribute('data-ask')) { onAsk(t.dataset.ask); return; }
-    syncPanel(); // re-check the locks first (the try day may have ended while the panel was open)
     if (t.classList.contains('is-locked')) { onLockedTap(t); return; }
     selectTile(t);
   });
-  wireUnlock();
   const input = document.getElementById('tb-title-input');
   if (input) {
     input.addEventListener('input', () => setTitle(input.value));
@@ -1225,9 +1166,9 @@ function wirePanel() {
       const before = model.slots;
       setSlots(goal.value);
       goal.value = String(model.slots); // shows the clamped value (e.g. 250 → 100, 1 → 3); a locked goal stays
-      if (model.slots !== before) goalChanged();
+      if (model.slots !== before) goalSignal();
     });
-    // Locked (T15): a click / tap, Enter / Space, a typed key or a paste opens the unlock modal; Tab focus alone
+    // Locked (T15): a click / tap, Enter / Space, a typed key or a paste opens the offer; Tab focus alone
     // does not, and shortcuts (Cmd / Ctrl / Alt), Tab, Escape and the arrow keys left / right pass through.
     const EDIT_KEYS = ['Enter', 'Backspace', 'Delete', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
     goal.addEventListener('click', () => { if (goalLocked()) onGoalLocked(goal); });
@@ -1276,26 +1217,36 @@ function wireBoardTitle() {
   });
 }
 
-/* ---- card below the fold (#pro-card): its button opens the same unlock modal (item "extras") + pro-view ---- */
-function syncProCard() {
-  const active = freeDayActive();
-  const bar = stage && stage.querySelector('[data-tb="extras"]'); // "✨ Free extras today" under the board
-  if (bar) {
-    bar.disabled = active;
-    const label = bar.querySelector('.tb-act-label');
-    if (label) label.textContent = active ? 'Extras unlocked' : 'Free extras today';
-  }
-  const btn = document.querySelector('#pro-card [data-unlock-open]');
-  if (!btn) return;
-  btn.disabled = active;
-  btn.textContent = active ? '✨ All extras unlocked until midnight' : 'Try all extras free for today';
+/* ---- the ✨ buttons + the pricing section (#pricing → price card #pro-card) + pro-view ---- */
+/** The ✨ button under the board and the celebration button are hidden when unlocked; on a gated page without
+    tb-dev they and the pricing section are hidden. */
+function syncUnlockButtons() {
+  const show = unlockUi && !unlocked;
+  // html.tbu-has-key (set by the inline head script from a stored key, before this module runs) follows the state
+  try { document.documentElement.classList.toggle('tbu-has-key', unlocked); } catch (e) { /* ignore */ }
+  const bar = stage && stage.querySelector('[data-tb="extras"]');
+  if (bar) { bar.hidden = !show; bar.style.display = show ? '' : 'none'; } // inline too: tool.css loads after the critical CSS
+  if (celebrateExtrasBtn && !show) celebrateExtrasBtn.hidden = true;
+  const pricing = document.getElementById('pricing');
+  if (pricing && !unlockUi) pricing.hidden = true;
 }
+/** Price card: the main button starts the payment directly, the second one opens the dialog in restore mode
+    (both in unlock.js: cardAction). unlock.js is loaded on the first pointer / focus on the card. */
 function wireProCard() {
+  syncUnlockButtons();
   const card = document.getElementById('pro-card');
   if (!card) return;
-  const btn = card.querySelector('[data-unlock-open]');
-  if (btn) btn.addEventListener('click', () => { syncProCard(); if (!btn.disabled) openExtras('card', btn); });
-  syncProCard();
+  if (unlockUi) {
+    card.addEventListener('click', ev => {
+      const t = ev.target && ev.target.closest ? ev.target.closest('[data-tbu-unlock],[data-tbu-restore]') : null;
+      if (!t || !card.contains(t)) return;
+      const pending = !!window.__tbUnlock; // see openOffer
+      loadUnlock().then(c => { if (!c) cardLoadFailed(card); else if (!pending) c.cardAction(t); });
+    });
+    const warm = () => { loadUnlock(); };
+    card.addEventListener('pointerdown', warm, { once: true });
+    card.addEventListener('focusin', warm, { once: true });
+  }
   if (typeof IntersectionObserver !== 'function') return;
   let seen = false; // once per page load
   try {
@@ -1448,6 +1399,11 @@ if (stage) {
   if (typeof ResizeObserver === 'function') { try { new ResizeObserver(refit).observe(stage); } catch (e) { /* ignore */ } }
   window.addEventListener('resize', refit);
   wireProCard();
+  // unlock.js now (not on first paint for a normal visitor): the Stripe return / a ?k= link (window.__tbUnlock, set
+  // by the inline head script), a stored key (panel line, price card), or the dev hook ?dev-thanks=1.
+  if (unlockUi && window.__tbUnlock) loadForReturn(0); // with retries: the visitor has just paid or opened their link
+  else if (unlocked || /[?&]dev-thanks=1(&|$)/.test(location.search)) loadUnlock();
+  window.addEventListener('online', () => { if (window.__tbUnlock && !unlockCtl) loadUnlock(); });
   sendVisit();
   window.addEventListener('pagehide', endSession);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') endSession(); });
@@ -1461,8 +1417,7 @@ if (stage) {
   }
   if (hoorayBtn) hoorayBtn.addEventListener('click', hooray);
   if (celebrateExtrasBtn) celebrateExtrasBtn.addEventListener('click', () => {
-    if (freeDayActive()) { celebrateExtrasBtn.hidden = true; return; }
-    openExtras('celebration', celebrateExtrasBtn); // the modal sits over the celebration; focus comes back here
+    openExtras('celebration', celebrateExtrasBtn); // the dialog sits over the celebration; focus comes back here
   });
 
   // Settings panel: "🎨 Style" under the board (toggles), the reward circle (opens at Reward)
@@ -1476,21 +1431,22 @@ if (stage) {
     });
   }
   const extrasBtn = stage.querySelector('[data-tb="extras"]');
-  if (extrasBtn) extrasBtn.addEventListener('click', () => { syncProCard(); if (!extrasBtn.disabled) openExtras('toolbar', extrasBtn); });
+  if (extrasBtn) extrasBtn.addEventListener('click', () => openExtras('toolbar', extrasBtn));
   stage.querySelectorAll('[data-tb="close"]').forEach(btn => btn.addEventListener('click', closePanel));
   // Desktop: tapping the stage outside the panel closes it (phone: full-stage sheet, Done / × only).
   stage.addEventListener('click', ev => {
     if (!stage.classList.contains('is-settings') || isPhone()) return;
+    if (!document.contains(ev.target)) return; // a control that re-rendered itself on this tap (Show / Hide in the unlocked line)
     if (panel.contains(ev.target) || (settingsBtn && settingsBtn.contains(ev.target))) return;
     if ((rewardEl && rewardEl.contains(ev.target)) || ev.target.closest('.tb-actions')) return; // reward = jump to Reward
-    if (unlockOpen() || (unlockEl && unlockEl.contains(ev.target))) return; // the modal sits over the panel
+    if (ev.target.closest('.tbu-dialog')) return; // the offer dialog (inside the stage while in native fullscreen)
     if (ev.target && ev.target.id === 'tb-photo-input') return; // the file picker's click is not a tap outside
     closePanel();
   });
   document.addEventListener('keydown', ev => {
-    if (unlockOpen()) { trapUnlock(ev); return; } // modal first: Escape = Not now, Tab stays inside
+    if (document.querySelector('dialog.tbu-dialog[open]')) return; // the offer dialog handles its own keys (Escape, Tab)
     if (stage.classList.contains('is-complete')) {
-      // Celebration dialog: Hooray (+ the extras button outside a free day). Tab stays inside, Escape = Hooray.
+      // Celebration dialog: Hooray (+ the ✨ button while locked). Tab stays inside, Escape = Hooray.
       if (ev.key === 'Escape') { ev.preventDefault(); hooray(); return; }
       if (ev.key === 'Tab') {
         ev.preventDefault();
@@ -1527,7 +1483,7 @@ if (stage) {
       tapSlot,
       fillAll() { for (let i = 0; i < model.slots; i++) if (!model.filled.includes(i)) tapSlot(i); },
       clearStorage() {
-        try { [STORAGE_KEY, 'tb-fs-hint', TRIED_KEY, HINT_KEY, SETTINGS_KEY].forEach(k => localStorage.removeItem(k)); } catch (e) { /* ignore */ }
+        try { [STORAGE_KEY, 'tb-fs-hint', 'tb-tried', HINT_KEY, SETTINGS_KEY, LICENSE_KEY, 'tb-device', 'tb-mock'].forEach(k => { delete lsMem[k]; localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
         Promise.all([photoDelete('reward'), photoDelete('background')]).finally(() => {
           try { location.reload(); } catch (e) { /* not available in some test runners */ }
         });
@@ -1540,18 +1496,9 @@ if (stage) {
         if (v !== null) setTitle(v);
       },
       bgBlue() { setBackground('blue'); }, bgWhite() { setBackground('white'); },
-      // free day without changing the clock: expire it, set nth, or forget everything
-      freeDayExpired() {
-        const d = new Date(); d.setDate(d.getDate() - 1);
-        tried().until = dateStr(d); saveTried(); syncPanel(); showStatus('Free day → expired (yesterday)');
-      },
-      // nth → 3 with an active free day and the question not yet answered: the would-pay card shows in the panel
-      nth3() {
-        const t = tried(); t.nth = 3; t.asked = 0; t.used = [];
-        if (!freeDayActive()) t.until = dateStr(new Date());
-        askThanks = false; saveTried(); syncPanel(); showStatus('Free day active, nth → 3');
-      },
-      clearTried() { triedMem = { until: '', nth: 0, used: [], asked: 0, answers: 0, unlockFrom: '' }; try { localStorage.removeItem(TRIED_KEY); } catch (e) { /* ignore */ } syncPanel(); showStatus('Free-day data cleared'); },
+      // paid unlock without a payment: store the mock key / remove the key, then reload
+      unlockMock() { lsSet(LICENSE_KEY, 'TB-TEST-TEST-TEST'); try { location.reload(); } catch (e) { /* not available in some test runners */ } },
+      lockAgain() { delete lsMem[LICENSE_KEY]; try { localStorage.removeItem(LICENSE_KEY); } catch (e) { /* ignore */ } try { location.reload(); } catch (e) { /* ignore */ } },
       // empty-board hint + settings-open again, as in a fresh browser (also in this page load)
       resetHintSettings() {
         try { localStorage.removeItem(HINT_KEY); localStorage.removeItem(SETTINGS_KEY); } catch (e) { /* ignore */ }

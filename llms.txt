@@ -1,6 +1,6 @@
 # Token Board – free online token board (token-board.app)
 
-> token-board.app is a free token board that runs in the browser. A child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds and rewards are extras you can unlock free for a day. Tap a slot to earn a token, tap again to remove it; a full board shows "You did it!" and resets with one tap. It is free, needs no account, shows no ads, and nothing is uploaded: the board stays in the browser. It works on any screen (laptop, Chromebook, iPad, phone, interactive whiteboard) and in teletherapy by sharing the browser tab in Zoom or Google Meet. Made by Natalia Jakubczyk-Gajewska (Apps for Parents) for ABA therapists, teachers and parents; a support tool, not a substitute for professional advice from a BCBA or clinician.
+> token-board.app is a free token board that runs in the browser. A child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More token goals, icons, backgrounds, rewards and your own photos are extras in an optional one-time unlock. Tap a slot to earn a token, tap again to remove it; a full board shows "You did it!" and resets with one tap. It is free, needs no account, shows no ads, and nothing is uploaded: the board stays in the browser. It works on any screen (laptop, Chromebook, iPad, phone, interactive whiteboard) and in teletherapy by sharing the browser tab in Zoom or Google Meet. Made by Natalia Jakubczyk-Gajewska (Apps for Parents) for ABA therapists, teachers and parents; a support tool, not a substitute for professional advice from a BCBA or clinician.
 
 > The same maker's app, Token Board: ABA Reward Chart (listed as "ABA Token Board" until September 2026, App Store ID 6752328327), is a free digital token board and reward chart app for ABA therapy, autism support, classrooms and home. A child earns visual tokens for target behaviors and trades a full board for a reward they chose in advance. Everything is picture-based, so pre-readers and nonverbal children can use it fully. It is designed for ABA therapists, special-education and general-education teachers, and parents.
 
@@ -12,7 +12,9 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 
 - Free, no account, no ads; nothing is uploaded (the board, its title, settings and photos stay in the browser; anonymous usage statistics only).
 - Token goal: 3, 5 or 10 (other goals from 3 to 100 are extras); tap a slot to earn a token, tap again to remove it; celebration when the board is full.
-- The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras; you can unlock them all free for a day, as often as you like, while we test.
+- The online token board is free, with no account and no ads: a token goal of 3, 5 or 10 with a star token, a white background and a gift reward. Other token goals, icons, backgrounds, rewards and your own photos are extras: an optional one-time unlock for $19.99 plus tax where applicable adds them all, with no subscription. The free board keeps working without it.
+- One-time unlock (web version only): $19.99 plus tax where applicable, one payment, no subscription. It adds your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds. Sold and charged by Link (Stripe); the charge appears as LINK.COM* APPS4PARENTS (Apps for Parents is the maker of Token Board). The iPhone, iPad and Mac app is sold separately in the App Store.
+- The unlock needs no account: the license key is shown after payment and sent by email. Restore it on the devices you use yourself with the restore link, the key or the email address you paid with. Refund in full on request within 14 days of the purchase.
 - Works on any screen with a browser, and in teletherapy by sharing the tab or window in Zoom / Google Meet.
 
 ## Key facts — the app (Token Board: ABA Reward Chart)
@@ -58,6 +60,9 @@ App Store: https://apps.apple.com/app/apple-store/id6752328327?pt=118868513&ct=w
 
 ## Support
 
-- Email: AppsForParents@gmail.com
-- Privacy Policy: https://sites.google.com/site/appsforparentsprivacy/
-- Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+- Web unlock support: support@token-board.app
+- Terms of Use (website and web unlock): https://token-board.app/terms.html
+- Privacy Policy (website and web unlock): https://token-board.app/privacy.html
+- App support email: AppsForParents@gmail.com
+- App Privacy Policy: https://sites.google.com/site/appsforparentsprivacy/
+- App Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/

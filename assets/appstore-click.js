@@ -3,7 +3,8 @@
   kidstimer.app and visual-schedule.app).
 
   Loads the TelemetryDeck JavaScript SDK (@telemetrydeck/sdk, ES module, no
-  dependencies) from jsDelivr at runtime and sends one signal per click on an
+  dependencies) from this site (assets/vendor/, self-hosted since S1,
+  2026-11-14) at runtime and sends one signal per click on an
   own App Store link (app id 6752328327):  type "appstore-click",
   payload { page, position, source, path, referrer }.
 
@@ -31,7 +32,7 @@
 */
 (function () {
   var APP_ID = 'C2A6027C-00E1-4CC9-9FD5-C7A238880FF4';
-  var SDK_URL = 'https://cdn.jsdelivr.net/npm/@telemetrydeck/sdk@2.0.4/dist/telemetrydeck.js';
+  var SDK_URL = './vendor/telemetrydeck-sdk-2.0.4.js'; // relative to THIS module (assets/), so it works from / and /guides/
   var CROSSLINK_TARGETS = { 'first-then': 1, 'visual-schedule': 1, 'kidstimer': 1, 'keepquiet': 1 };
   var td = null;
 

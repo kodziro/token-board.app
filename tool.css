@@ -38,7 +38,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
-/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Free extras today = light */
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
 .tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
 .tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
 .tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
@@ -46,6 +46,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-act-style>span{font-size:1.15em}
 .tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
 .tb-act-extras:hover{background:#EEF5FF}
+.tbu-has-key .tb-act-extras{display:none}
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -97,7 +98,7 @@ html{scroll-behavior:smooth}
 .tb-thumb.is-nudge{box-shadow:0 0 0 3px #1F6FD1}
 .tb-lock{position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:var(--tb-navy);color:#fff;display:flex;align-items:center;justify-content:center}
 .tb-lock svg{width:10px;height:10px;fill:currentColor}
-/* lock badge only while the item is locked (an item tried today shows no badge) */
+/* lock badge only while the item is locked */
 /* own photo tiles (first in Reward + Background): thumbnail once set, small × to delete it from this browser */
 .tb-photo-cell{position:relative;min-width:0}
 .tb-thumb-photo:not(.has-photo){border:2px dashed var(--tb-accent);background:#EEF5FF}
@@ -121,72 +122,17 @@ html{scroll-behavior:smooth}
 .tb-stage[data-bg="photo"] .tb-title{text-shadow:0 0 2px #fff,0 0 16px rgba(255,255,255,.95)}
 .tb-stage[data-bg="photo"] .tb-privacy{background:rgba(255,255,255,.85)}
 .tb-thumb:not(.is-locked) .tb-lock{display:none}
-/* card below the fold (#pro-card) + shared pill / action styles (also used by the unlock modal) */
-.tb-card{background:#EEF5FF;border:1px solid #D9ECFF;border-radius:14px;padding:16px;color:var(--tb-navy)}
-.tb-card[hidden],.tb-card [hidden]{display:none}
-.tb-card p{margin:0 0 12px;font-size:.95rem;line-height:1.4}
-.tb-card-actions{display:flex;flex-direction:column;align-items:stretch;gap:8px}
-.tb-interest-page{max-width:560px;padding:20px}
-.tb-interest-page .tb-card-actions{flex-direction:row;flex-wrap:wrap}
-.tb-pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border:0;border-radius:999px;background:var(--tb-accent);color:var(--tb-navy);font:inherit;font-weight:700;font-size:1rem;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer}
-.tb-pill:hover{background:#6DB5FF}
-.tb-pill[disabled]{cursor:default;opacity:.85}
-.tb-link{align-self:center;min-height:44px;min-width:120px;padding:0 16px;border:0;border-radius:12px;background:transparent;color:#5B6478;font:inherit;font-weight:400;font-size:.9rem;text-decoration:none;cursor:pointer}
-.tb-link:hover{color:var(--tb-navy);background:var(--tb-slot)}
-/* free day active: one line at the top of the panel body */
-.tb-freeday{margin:0;padding:10px 12px;border-radius:12px;background:#EEF5FF;border:1px solid #D9ECFF;font-weight:700;font-size:.9rem;line-height:1.3}
-.tb-freeday[hidden]{display:none}
-.tb-freeday.is-new{animation:tb-glow 1.2s ease-out}
-@keyframes tb-glow{0%{opacity:0;box-shadow:0 0 0 0 rgba(77,163,255,0)}40%{opacity:1;box-shadow:0 0 0 6px rgba(77,163,255,.35)}100%{opacity:1;box-shadow:0 0 0 0 rgba(77,163,255,0)}}
-/* free-day unlock: lock badges pop off one after another (--d = stagger) with a sparkle, tiles fade to full */
+/* the page becomes unlocked: lock badges pop off one after another (--d = stagger) with a sparkle */
 .tb-thumb.is-unlocking .tb-lock{display:flex;animation:tb-lock-off .35s ease-in var(--d,0ms) forwards}
-.tb-thumb.is-unlocking .tb-thumb-img,.tb-thumb.is-fading .tb-thumb-img{transition:opacity .3s ease var(--d,0ms)}
 .tb-thumb.is-unlocking::after{content:"✨";position:absolute;top:2px;right:2px;font-size:.85rem;line-height:1;opacity:0;pointer-events:none;animation:tb-sparkle .45s ease-out var(--d,0ms)}
 @keyframes tb-lock-off{0%{transform:none;opacity:1}40%{transform:translateY(-4px) scale(1.3);opacity:1}100%{transform:translateY(-10px) scale(0);opacity:0}}
 @keyframes tb-sparkle{0%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(.8)}}
-/* free-day unlock: small confetti burst from the screen centre (tool.js burstConfetti) */
-.tb-burst{position:fixed;left:50%;top:50%;width:0;height:0;z-index:1200;pointer-events:none}
-.tb-burst i{position:absolute;left:-5px;top:-7px;width:10px;height:14px;border-radius:2px;background:var(--c,#4DA3FF);opacity:0;animation:tb-burst var(--d,1.3s) cubic-bezier(.15,.7,.3,1) forwards}
-@keyframes tb-burst{0%{opacity:1;transform:translate(0,0) rotate(0) scale(.6)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--r,0deg)) scale(1)}}
-/* reduced motion: no pops, no burst (JS), only a calm fade of the tiles and the line */
+/* reduced motion: no pops (tool.js adds is-fading instead of is-unlocking), only a calm fade of the lock badges */
+@keyframes tbu-fade-out{from{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){
-  .tb-thumb.is-fading .tb-thumb-img{transition:opacity .4s ease!important}
-  .tb-freeday.is-new{animation:tb-fade .4s ease!important}
-  @keyframes tb-fade{from{opacity:0}to{opacity:1}}
+  .tb-thumb.is-fading .tb-lock{display:flex;animation:tbu-fade-out .4s ease forwards!important}
 }
-/* would-pay question (2nd free day on, once per free day) */
-.tb-ask{position:relative;margin-top:-14px;padding:12px 44px 12px 12px;border-radius:12px;background:#fff;border:1px solid var(--tb-ring)}
-.tb-ask[hidden],.tb-ask [hidden]{display:none}
-.tb-ask-q{margin:0 0 10px;font-weight:700;font-size:.9rem;line-height:1.35}
-.tb-ask-btns{display:flex;gap:8px}
-.tb-ask-btn{flex:1 1 0;min-height:40px;border:1px solid #C9CFDB;border-radius:999px;background:var(--tb-slot);color:var(--tb-navy);font:inherit;font-weight:700;font-size:.95rem;cursor:pointer}
-.tb-ask-btn:hover{border-color:var(--tb-accent);background:#EEF5FF}
-.tb-ask-x{position:absolute;top:2px;right:2px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--tb-navy);font-size:1.3rem;line-height:1;cursor:pointer}
-.tb-ask-x:hover{background:var(--tb-slot)}
-.tb-ask-thanks{margin:0;font-weight:700;font-size:.9rem;line-height:1.35}
-.tb-ask-thanks:empty{display:none}
-/* unlock modal: fixed over the whole screen (also over the phone sheet and in fullscreen, it lives inside the stage) */
-.tb-modal{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(30,42,68,.55);font-family:system-ui,-apple-system,sans-serif;color:var(--tb-navy)}
-.tb-modal[hidden]{display:none}
-.tb-modal-box{width:100%;max-width:400px;max-height:100%;overflow:auto;background:#fff;border-radius:20px;padding:22px 20px 14px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
-.tb-modal-title{margin:0 0 8px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2}
-.tb-modal-box p{margin:0 0 16px;font-size:.98rem;line-height:1.45}
-.tb-unlock-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;padding:0 20px;border:0;border-radius:16px;background:#1F6FD1;color:#fff;font:inherit;font-weight:800;font-size:1.08rem;line-height:1.2;cursor:pointer;box-shadow:0 8px 20px rgba(31,111,209,.32);transition:background .15s ease,transform .1s ease}
-.tb-unlock-go:hover{background:#1A5FB4}
-.tb-unlock-go:active{transform:scale(.98)}
-.tb-modal-app{display:block;margin:6px 0 4px;text-align:center;font-size:.8rem;font-weight:400;color:#5B6478;text-decoration:none}
-.tb-modal-preview{display:flex;justify-content:center;gap:6px;margin:0 0 12px!important;font-size:28px;line-height:1.2}
-.tb-modal-preview span{display:inline-block}
-.tb-modal.is-bouncing .tb-modal-preview span{animation:tb-bounce .4s ease-out}
-.tb-modal.is-bouncing .tb-modal-preview span:nth-child(2){animation-delay:.03s}
-.tb-modal.is-bouncing .tb-modal-preview span:nth-child(3){animation-delay:.06s}
-.tb-modal.is-bouncing .tb-modal-preview span:nth-child(4){animation-delay:.09s}
-.tb-modal.is-bouncing .tb-modal-preview span:nth-child(5){animation-delay:.12s}
-.tb-modal.is-bouncing .tb-modal-preview span:nth-child(6){animation-delay:.15s}
-@keyframes tb-bounce{0%,100%{transform:none}40%{transform:translateY(-10px) scale(1.12)}}
-.tb-modal-app:hover{text-decoration:underline}
-.tb-modal-app[hidden]{display:none}
-/* locked backgrounds: shown only while tried for today, or kept by a board in use */
+/* locked backgrounds: shown when unlocked, or kept by a board in use */
 .tb-stage[data-bg="green"]{background:#DFF5E3}
 .tb-stage[data-bg="yellow"]{background:#FFF3C4}
 .tb-stage[data-bg="pink"]{background:#FFE0EC}
@@ -286,7 +232,6 @@ html{scroll-behavior:smooth}
 .tb-act-style:focus-visible{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--tb-navy)} /* dark pill: white inner + navy outer ring */
 .tb-pointer .tb-act:focus,.tb-pointer .tb-reward:focus{outline:none;box-shadow:none}
 .tb-pointer .tb-panel button:focus{outline:none} /* × and every panel button: ring only after a key press (Enter on 🎨 Style still shows it on ×) */
-.tb-pointer .tb-modal button:focus,.tb-pointer .tb-modal a:focus{outline:none} /* unlock modal: Unlock, Not now, App Store link — same rule */
 .tb-pointer .tb-complete button:focus{outline:none} /* celebration: Hooray (focused by script after a tap) + the extras button */
 .tb-act:focus:not(:focus-visible),.tb-reward:focus:not(:focus-visible){outline:none}
 .tb-act-style:focus:not(:focus-visible){box-shadow:none}
@@ -300,7 +245,7 @@ html{scroll-behavior:smooth}
 .tb-complete-sub{margin:0 0 14px;font-size:1.2rem;font-weight:700;opacity:.9}
 .tb-hooray{min-height:64px;min-width:200px;padding:0 36px;border:0;border-radius:999px;background:var(--tb-green);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.4rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .tb-hooray:hover{filter:brightness(1.05)}
-/* small secondary button under Hooray (only outside a free day): opens the unlock modal; never over the reward */
+/* small secondary button under Hooray (only while locked): opens the offer dialog; never over the reward */
 .tb-complete-extras{margin-top:4px;min-height:44px;max-width:100%;padding:8px 18px;border:0;border-radius:999px;background:#fff;color:var(--tb-navy);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25);font-family:system-ui,-apple-system,sans-serif;font-weight:600;font-size:.9rem;line-height:1.3;cursor:pointer}
 .tb-complete-extras:hover{background:#EEF5FF}
 .tb-complete-extras[hidden]{display:none}
@@ -380,3 +325,101 @@ body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
 .foot-brand{display:flex;align-items:center;gap:11px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:#fff;font-size:1.15rem;margin-bottom:14px}
 .foot-brand img{width:40px;height:40px;border-radius:10px;display:block}
 .foot-note{border-top:1px solid rgba(255,255,255,.15);padding-top:22px;font-size:.85rem;color:#9aa7d6}
+
+/* ============================================================================
+   Paid unlock UI (prefix tbu-; worker/README.md § 8.4): offer dialog, pricing section + price card,
+   panel line, fallback card. Look: navy #1E2A44, button #1F6FD1 with white text, Fredoka headings,
+   44 px targets, focus ring only for keyboard use (html.tb-pointer, see above).
+   ========================================================================== */
+.tb-act[hidden]{display:none} /* the ✨ button under the board is hidden when unlocked (before tool.js runs: html.tbu-has-key, critical CSS) */
+/* the status pill must show over the celebration overlay (z-index 30) too: "Could not load the unlock — …" */
+.tb-stage.is-complete .tb-status{z-index:31;background:#fff;color:var(--tb-navy)}
+/* header nav with 4 links (Pricing added 2026-11-14): below 440 px the brand text and the nav would collide
+   (and at 320 px the page would scroll sideways), so the "Board" link is hidden there — the brand links to it */
+@media(max-width:439px){.tb-nav{gap:14px}.tb-nav a[href="#board"]{display:none}}
+
+/* ---- dialog (native <dialog>, top layer) ---- */
+.tbu-dialog{border:0;border-radius:20px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;background:transparent;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-size:1rem;line-height:1.5;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.tbu-dialog::backdrop{background:rgba(30,42,68,.55)}
+.tbu-dialog-box{position:relative;z-index:1;min-height:100%;padding:22px 20px 18px;background:#fff;outline:0}
+.tbu-dialog-x{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;border-radius:50%;padding:0;background:none;color:#5B6478;font:400 1.6rem/1 system-ui,-apple-system,sans-serif;cursor:pointer}
+.tbu-dialog-x:hover{background:var(--tb-slot);color:var(--tb-navy)}
+html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
+.tbu-title{max-width:10.5em;margin:0 40px 8px 0;text-wrap:balance;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2;color:var(--tb-navy)}
+.tbu-lead{margin:0 0 12px;font-size:.98rem;line-height:1.45}
+.tbu-preview{display:flex;justify-content:center;gap:6px;margin:0 0 12px;font-size:28px;line-height:1.2}
+/* the Unlock button (dialog + price card): two lines; "Style your board →" uses the same look */
+.tbu-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;min-height:56px;padding:8px 20px;border:0;border-radius:16px;background:#1F6FD1;color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:800;font-size:1.08rem;line-height:1.2;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(31,111,209,.32);transition:background .15s ease,transform .1s ease}
+.tbu-btn:hover{background:#1A5FB4}
+.tbu-btn:active{transform:scale(.98)}
+.tbu-btn[disabled]{cursor:default;opacity:.8}
+.tbu-u1,.tbu-u2{display:block}
+.tbu-u2{font-weight:600;font-size:.88rem}
+.tbu-style{margin:0 0 14px}
+.tbu-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--tb-navy);border-radius:999px;background:#fff;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1.2;cursor:pointer}
+.tbu-ghost:hover{background:#EEF5FF}
+.tbu-sm{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;border:0;border-radius:8px;background:none;color:#1F6FD1;font-family:inherit;font-size:inherit;font-weight:700;line-height:1.2;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.tbu-sm:hover{color:#1A5FB4;background:#EEF5FF}
+.tbu-ghost[disabled],.tbu-sm[disabled]{cursor:default;opacity:.6}
+.tbu-trust{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:4px 14px;margin:12px 0;font-size:.82rem;line-height:1.3;color:#3D4763}
+.tbu-trust-item{display:inline-flex;align-items:center;gap:6px}
+.tbu-trust-item:nth-child(n+3){flex:0 0 100%} /* rows: [one-time payment, no subscription] / secure checkout / unlocks instantly */
+.tbu-trust-item svg{flex:0 0 14px;color:#1F6FD1}
+.tbu-fine{margin:0 0 8px;font-size:.8rem;line-height:1.4;color:#5B6478}
+.tbu-fine a,.tbu-quiet a,.tbu-msg a,.tbu-link{color:#1F6FD1}
+/* the three bottom lines of the offer: left-aligned, small even gaps; 44 px tap targets on touch screens */
+.tbu-see,.tbu-restore-toggle{margin:4px 0 0;text-align:left;font-size:.9rem}
+.tbu-fine+.tbu-see{margin-top:0}
+.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:24px;margin-left:-6px}
+@media (pointer:coarse){.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
+.tbu-quiet{margin:8px 0 0;text-align:left;font-size:.85rem;color:#5B6478}
+.tbu-restore{margin:8px 0 12px;padding:12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
+.tbu-restore label{display:block;margin:0 0 8px;font-weight:700;font-size:.9rem;line-height:1.3}
+.tbu-row{display:flex;gap:8px}
+.tbu-input{flex:1 1 auto;min-width:0;height:44px;border:1px solid #C9CFDB;border-radius:12px;padding:0 12px;font:inherit;font-size:1rem;color:var(--tb-navy);background:#fff}
+.tbu-input:focus{border-color:#1F6FD1}
+.tbu-msg{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EEF5FF;font-size:.9rem;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.tbu-msg[hidden]{display:none}
+.tbu-msg.is-error{background:#FDECEA;color:#8C1D18}
+.tbu-msg.is-success{background:#E8F7E4;color:#1E4D14}
+.tbu-msg .tbu-sm{min-height:32px}
+.tbu-keybox{margin:0 0 10px;padding:14px 12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring);text-align:left}
+.tbu-label{margin:0 0 4px;font-size:.8rem;font-weight:700;line-height:1.3;color:#5B6478}
+.tbu-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.25rem;font-weight:700;letter-spacing:.04em;color:var(--tb-navy);overflow-wrap:anywhere}
+.tbu-btnrow{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;margin:0 0 14px}
+.tbu-linkrow{margin:0 0 12px;padding:12px;border-radius:14px;border:1px solid var(--tb-ring);text-align:left}
+.tbu-url{margin:0 0 8px;font-size:.85rem;line-height:1.35;overflow-wrap:anywhere}
+.tbu-sent{margin:0 0 8px;font-size:.9rem;line-height:1.4}
+/* focus: one ring in the button blue, keyboard only */
+.tbu-dialog :focus-visible,.tbu-pricing button:focus-visible,.tbu-line button:focus-visible,.tbu-card :focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
+.tbu-dialog-box:focus,.tbu-dialog-box:focus-visible{outline:0}
+.tb-pointer .tbu-dialog button:focus,.tb-pointer .tbu-dialog a:focus,.tb-pointer .tbu-dialog input:focus,.tb-pointer .tbu-pricing button:focus{outline:none}
+
+/* ---- panel: the unlocked line (bottom of the panel body) and the fallback card (browsers without showModal) ---- */
+.tbu-line{font-size:.85rem;line-height:1.4;color:#5B6478}
+.tbu-line[hidden],.tbu-card[hidden]{display:none}
+.tbu-status{margin:0}
+.tbu-status .tbu-key{font-size:.85rem;letter-spacing:0;white-space:nowrap}
+.tbu-status .tbu-sm{padding:0 4px}
+.tbu-card{padding:14px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
+
+/* ---- pricing section (#pricing) + price card (#pro-card) ---- */
+.tbu-pricing[hidden]{display:none}
+.tbu-pricing-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+.tbu-pricing-grid>*{min-width:0}
+@media(max-width:800px){.tbu-pricing-grid{grid-template-columns:1fr}}
+.tbu-pricing .tbu-eyebrow{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1F6FD1}
+.tbu-pricing-h3{margin:18px 0 10px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tbu-pricing-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tbu-pricing-list li{position:relative;padding-left:28px}
+.tbu-pricing-list li::before{content:"✓";position:absolute;left:2px;top:0;font-weight:800;color:#1F6FD1}
+.tbu-price-card{max-width:440px;background:#F7FAFF;border:1px solid var(--tb-ring);border-radius:18px;padding:22px 20px;text-align:center}
+.tbu-pricing .tbu-price-name{margin:0 0 4px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tbu-pricing .tbu-price-amount{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.6rem;line-height:1.1}
+.tbu-pricing .tbu-price-term{margin:0 0 16px;font-weight:700;color:#5B6478}
+.tbu-price-actions{display:flex;flex-direction:column;align-items:stretch}
+.tbu-price-actions .tbu-ghost{align-self:center;margin:0 0 12px}
+.tbu-pricing .tbu-trust{margin:12px 0}
+.tbu-pricing .tbu-load-fail{margin:0 0 12px;text-align:left} /* unlock.js could not be loaded after a tap on a card button */
+.tbu-pricing .tbu-fine{margin:0;text-align:left}
+.tbu-pricing .tbu-status{margin:0;font-weight:700}
