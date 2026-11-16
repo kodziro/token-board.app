@@ -130,7 +130,7 @@ export const STRINGS = {
 
 // README § 8.3: tool-test.html sets window.__tbUnlockApi in its inline head script (ring 1: "mock",
 // ring 3: the test Worker URL — it stays the staging page); index.html never sets it and uses this
-// constant ("mock" on the branch, the live API after the go-live patch). No trailing slash.
+// constant: the live API since go-live, 2026-11-16 (it was "mock" on the branch before). No trailing slash.
 // Developer override (ring 2, Step 5b): localStorage "tb-api" = "mock" or an http(s) origin, read ONLY
 // on localhost / 127.0.0.1 or when localStorage tb-dev === "1" — never on the live host without tb-dev.
 export function resolveApi(base, host, get) {
@@ -144,7 +144,7 @@ export function resolveApi(base, host, get) {
     return o;
   } catch (e) { return base; }
 }
-const UNLOCK_API = resolveApi(window.__tbUnlockApi || 'mock', location.hostname,
+const UNLOCK_API = resolveApi(window.__tbUnlockApi || 'https://api.token-board.app', location.hostname,
   (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } });
 
 const LS_LICENSE = 'tb-license', LS_DEVICE = 'tb-device', LS_MOCK = 'tb-mock', LS_DEV = 'tb-dev';

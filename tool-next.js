@@ -6,7 +6,8 @@
   Paid unlock (Step 5a, 2026-11-14, ?v=20261114a; Step 5b ?v=20261114b: the html class tbu-has-key follows "unlocked",
     a failed load of unlock.js shows the status pill for 4 s; 5b-fix ?v=20261114c: retry on the return from payment /
     a restore link, a line under the price card when its buttons could not load unlock.js; Step 6a ?v=20261115a: only UNLOCK_V —
-    unlock.js got the 15 s time limit for real Worker calls and the restore-field attributes): the one-time unlock replaces the earlier trial of the extras.
+    unlock.js got the 15 s time limit for real Worker calls and the restore-field attributes; go-live ?v=20261116a: only UNLOCK_V —
+    the default API of unlock.js is the live API): the one-time unlock replaces the earlier trial of the extras.
     "unlocked" = localStorage tb-license holds a key that passes the key regex (read synchronously at the start,
     try/catch, in-memory fallback); it decides every lock (tiles, goal stepper + number input, photo tiles,
     setters). A saved board keeps a locked item, a photo and a goal outside 3 / 5 / 10 until the user changes it.
@@ -1003,7 +1004,7 @@ async function loadPhotos() {
 /* =====================================================================
    Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
    ===================================================================== */
-const UNLOCK_V = '20261115a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const UNLOCK_V = '20261116a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
 const importUnlock = () => import('./unlock-next.js?v=' + UNLOCK_V);
 let unlockCtl = null;     // the controller returned by unlock.js init(api)
 let unlockLoading = null; // the one import promise
