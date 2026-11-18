@@ -34,10 +34,10 @@
   Restore row (Step 5b, EMAIL_RESTORE = true): input with "@" → the email path (trim + lower-case, client-side
   check, POST /magic; the answer text is the same for known and unknown addresses), anything else → the key
   path (POST /restore). The email is never stored, never logged by this file and never put into a signal.
-  Signals (README § 8.4.5): unlock-click {from: panel|toolbar|celebration|card — the pressed Unlock
+  Signals (README § 8.4.5): unlock-click {from: panel|toolbar|celebration|card|boards — the pressed Unlock
   button, or the opener of the dialog it sits in; anything else "unknown"}, unlock-success {via; + from
   when via is checkout}, unlock-cancel {from}, unlock-fail {reason}, unlock-restore-attempt {via: key (typed) | url (?k=) | mail (?k=…&src=mail) | email (POST /magic)},
-  dialog-open {from: panel|toolbar|celebration|restore|manage — the visitor opened the dialog (or its
+  dialog-open {from: panel|toolbar|celebration|boards|restore|manage — the visitor opened the dialog (or its
   fallback card); never sent when it opens by itself: Stripe return, ?k= result, checkout error}.
   Never the key, the email, the device id or the session id.
   Across the Stripe redirect (sessionStorage, try/catch, front end only): tb-unlock-from = the from of the
@@ -58,7 +58,7 @@ export const STRINGS = {
 
   // offer
   offerTitle: 'Unlock all extras for your token board',
-  offerLine: 'Your own photos, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds.',
+  offerLine: 'Your own photos, up to 20 boards, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds.',
   preview: ['🦄', '🚀', '🌈', '🦖', '🎠', '🖼️'],
   previewLabel: 'Examples of the extras',
   unlockLine1: 'Unlock all extras',        // the Unlock button, line 1 (bold) …
@@ -149,7 +149,7 @@ const UNLOCK_API = resolveApi(window.__tbUnlockApi || 'https://api.token-board.a
 
 const LS_LICENSE = 'tb-license', LS_DEVICE = 'tb-device', LS_MOCK = 'tb-mock', LS_DEV = 'tb-dev';
 const SS_FROM = 'tb-unlock-from', SS_TEST_RETURN = 'tb-test-return';   // sessionStorage, across the Stripe redirect only
-const FROM_VALUES = ['panel', 'toolbar', 'celebration', 'card'];        // unlock-click {from}; anything else is sent as "unknown"
+const FROM_VALUES = ['panel', 'toolbar', 'celebration', 'card', 'boards']; // boards: T16 (+ New board / Duplicate)        // unlock-click {from}; anything else is sent as "unknown"
 function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
 function ssTake(k) { let v = null; try { v = sessionStorage.getItem(k); sessionStorage.removeItem(k); } catch (e) {} return v; }
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -433,7 +433,7 @@ export default function init(api) {
     signal('dialog-open', { from: how });
     openDialog(from, focusRestore, false, back);
   }
-  // from: 'panel' | 'toolbar' | 'celebration' | 'card' | 'unknown' (→ unlock-click {from} of the dialog's button);
+  // from: 'panel' | 'toolbar' | 'celebration' | 'boards' | 'card' | 'unknown' (→ unlock-click {from} of the dialog's button);
   // focusRestore: put the caret in the key field; back: the element that gets the focus when the dialog closes
   function openDialog(from, focusRestore, expandRestore, back) {
     state.openedFrom = from || 'unknown';
@@ -916,7 +916,7 @@ export default function init(api) {
   handleUrl();
 
   return {
-    show(from, back) { userOpen(from, from, false, back); },   // an entry point in tool.js (panel | toolbar | celebration)
+    show(from, back) { userOpen(from, from, false, back); },   // an entry point in tool.js (panel | toolbar | celebration | boards)
     panelClosed() {   // Show lasts until the panel (or the dialog) closes; the fallback card closes with the panel
       const v = !DIALOG_OK ? views.find((x) => x.variant === 'panel') : null;
       if (v) { v.host.hidden = true; state.restoreOpen = false; state.justBought = false; }

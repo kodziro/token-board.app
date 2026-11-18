@@ -3,6 +3,13 @@
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
   Paid unlock contract: worker/README.md § 8 (browser side; § 8.4 = the offer dialog, entry points, signals).
 
+  Boards (T16, 2026-11-18, ?v=20261118a; docs/tool-spec.md § Boards): up to 20 boards per browser in localStorage
+    tb-boards (the old tb-board is migrated as the legacy board 1 and keeps a copy of the active board). A third pill
+    "🗂️ Boards" opens the same panel with another body (#tb-boards-body): switch, + New board, Duplicate, Delete
+    (inline confirm; never the last board). One board is free; more boards are part of the unlock. Photos per board
+    (key <id>:<kind>; the legacy board keeps <kind>). Storage full: nothing is added, a clear message.
+    ?v=20261118b: "🗂️ Boards" + "🎨 Style" move to a toolbar top right (#tb-tools, solid blue); only the gold
+    "✨ Unlock all extras" stays under the board (#tb-actions, hidden as a whole when unlocked).
   Paid unlock (Step 5a, 2026-11-14, ?v=20261114a; Step 5b ?v=20261114b: the html class tbu-has-key follows "unlocked",
     a failed load of unlock.js shows the status pill for 4 s; 5b-fix ?v=20261114c: retry on the return from payment /
     a restore link, a line under the price card when its buttons could not load unlock.js; Step 6a ?v=20261115a: only UNLOCK_V —
@@ -158,10 +165,42 @@ const TITLE_MAX = 40;
 const DEFAULT_TITLE = 'I am working for'; // 2026-10-23; was "My board" (migrated in sanitize)
 
 const defaults = () => ({
-  slots: 10, filled: [], title: DEFAULT_TITLE, icon: '⭐', reward: DEFAULT_REWARD, background: 'white', sound: true,
+  slots: 10, filled: [], title: DEFAULT_TITLE, icon: '⭐', reward: DEFAULT_REWARD, background: 'white',
   rewardPhoto: false, bgPhoto: false // true = show the own photo (kept in IndexedDB) instead of reward / background
 });
-let model = defaults();
+
+/* ---- Boards (T16, 2026-11-18; docs/tool-spec.md § Boards): up to 20 boards per browser, one is active.
+   localStorage tb-boards = {v: 1, active, sound, boards: [{id, slots, filled, title, icon, reward, background,
+   rewardPhoto, bgPhoto, legacy?}]}. model = the ACTIVE board (an object inside boards). Sound is one setting for
+   the browser. The board migrated from tb-board has legacy: true and keeps the photo keys "reward" / "background"
+   (no photo is moved); every other board uses "<id>:reward" / "<id>:background". tb-board keeps a copy of the
+   active board (old format + id / legacy): a rollback to the old tool still shows a board, and a broken
+   tb-boards is rebuilt from it. The id is local only and never sent. ---- */
+const BOARDS_KEY = 'tb-boards';
+const BOARDS_MAX = 20;
+const ID_RE = /^[a-z0-9]{8}$/;
+let model = Object.assign(defaults(), { id: 'board001' });
+let boards = [model];
+let soundOn = true;
+let storageBlocked = false; // localStorage cannot be used at all (some private windows): work in memory, silently
+
+function newId() {
+  const abc = 'abcdefghijkmnpqrstuvwxyz23456789';
+  for (;;) {
+    let s = '';
+    let r = null;
+    try { r = crypto.getRandomValues(new Uint8Array(8)); } catch (e) { r = null; }
+    for (let i = 0; i < 8; i++) s += abc[(r ? r[i] : Math.floor(Math.random() * 256)) % abc.length];
+    if (!boards.some(b => b.id === s)) return s;
+  }
+}
+/** A stored board (or anything) → a valid board with an id; legacy only when stored as legacy. */
+function sanitizeBoard(raw) {
+  const m = sanitize(raw);
+  m.id = raw && typeof raw.id === 'string' && ID_RE.test(raw.id) ? raw.id : '';
+  if (raw && raw.legacy === true) m.legacy = true;
+  return m;
+}
 
 function sanitize(raw) {
   const m = defaults();
@@ -175,7 +214,6 @@ function sanitize(raw) {
   if (raw.reward === '🛝') raw.reward = '🎠'; // removed 2026-10-21 (new emoji, missing on older systems): closest = carousel
   if (typeof raw.reward === 'string' && rewardByEmoji(raw.reward)) m.reward = raw.reward;
   if (typeof raw.background === 'string' && bgById(raw.background)) m.background = raw.background;
-  if (typeof raw.sound === 'boolean') m.sound = raw.sound;
   if (typeof raw.rewardPhoto === 'boolean') m.rewardPhoto = raw.rewardPhoto; // a board in use keeps its photo
   if (typeof raw.bgPhoto === 'boolean') m.bgPhoto = raw.bgPhoto;
   if (Array.isArray(raw.filled)) {
@@ -184,23 +222,60 @@ function sanitize(raw) {
   return m;
 }
 
-function load() {
-  let raw = null;
-  try {
-    const s = localStorage.getItem(STORAGE_KEY);
-    if (s) raw = JSON.parse(s);
-  } catch (e) { raw = null; }
-  model = sanitize(raw);
+function readJSON(k) {
+  try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : null; } catch (e) { return null; }
 }
 
-function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(model)); } catch (e) { /* storage blocked: still works for this session */ }
+/** Restore the boards. Order: tb-boards; else (none, or broken) migrate tb-board as board 1; else one default board.
+    Never an empty list, never an active id outside the list. */
+function load() {
+  try { localStorage.getItem(BOARDS_KEY); } catch (e) { storageBlocked = true; }
+  const st = readJSON(BOARDS_KEY);
+  const list = [];
+  if (st && typeof st === 'object' && Array.isArray(st.boards)) {
+    for (const raw of st.boards) {
+      if (list.length >= BOARDS_MAX) break;
+      if (!raw || typeof raw !== 'object') continue;
+      const b = sanitizeBoard(raw);
+      boards = list; // newId() checks the ids taken so far
+      if (!b.id || list.some(x => x.id === b.id)) b.id = newId();
+      list.push(b);
+    }
+  }
+  if (list.length) {
+    boards = list;
+    soundOn = typeof st.sound === 'boolean' ? st.sound : true;
+    model = boards.find(b => b.id === st.active) || boards[0];
+    return;
+  }
+  const old = readJSON(STORAGE_KEY);
+  const has = !!old && typeof old === 'object';
+  boards = [];
+  const b = sanitizeBoard(has ? old : null);
+  if (!b.id) b.id = newId();
+  // A board from before T16 (no id) owns the photos under "reward" / "background": it becomes the legacy board.
+  if (has && (old.legacy === true || !(typeof old.id === 'string' && ID_RE.test(old.id)))) b.legacy = true;
+  soundOn = has && typeof old.sound === 'boolean' ? old.sound : true;
+  boards = [b];
+  model = b;
+  if (has) save(); // the new format from now on (tb-board itself is kept, see above)
 }
+
+/** Write the boards. Returns "ok", "quota" (storage full: the caller undoes its change) or "blocked". */
+function saveBoards() {
+  if (storageBlocked) return 'blocked';
+  try {
+    localStorage.setItem(BOARDS_KEY, JSON.stringify({ v: 1, active: model.id, sound: soundOn, boards }));
+  } catch (e) { return isQuota(e) ? 'quota' : 'blocked'; }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.assign({}, model, { sound: soundOn }))); } catch (e) { /* the copy is a spare */ }
+  return 'ok';
+}
+function save() { saveBoards(); /* a failed write: the board still works in memory for this page load */ }
 
 /* ---------------- Web Audio (lazy, tap-only, never when sound is off) ---------------- */
 let audioCtx = null;
 function audio() {
-  if (!model.sound) return null;
+  if (!soundOn) return null;
   if (!audioCtx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
@@ -408,7 +483,7 @@ function noteTap() {
   idleTimer = setTimeout(endSession, IDLE_MS);
   if (!startSent) {
     startSent = true;
-    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag(), unlocked: unlocked ? 'yes' : 'no' });
+    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag(), unlocked: unlocked ? 'yes' : 'no', boards: boardsBucket() });
   }
 }
 
@@ -504,7 +579,8 @@ function hooray() {
 }
 
 /* ---------------- public API (used by T3 settings panel and T4) ---------------- */
-export function getModel() { return JSON.parse(JSON.stringify(model)); }
+/** The active board + the sound setting (tests, tool-test.html). */
+export function getModel() { return JSON.parse(JSON.stringify(Object.assign({}, model, { sound: soundOn }))); }
 
 /** Token goal 3–100 (clamped). Earned tokens are kept; if the new goal is smaller, the count is clamped to it.
     While locked only the quick picks 3 / 5 / 10 can be set (T15). */
@@ -543,11 +619,11 @@ export function setBackground(id) {
     unlock, or a board that already uses it. */
 export function setPhotoOn(kind, on) {
   const key = kind === 'reward' ? 'rewardPhoto' : 'bgPhoto';
-  if (on && !(photoUrl[kind] && (unlocked || model[key]))) return;
+  if (on && !(curPhoto(kind) && (unlocked || model[key]))) return;
   model[key] = !!on; save(); render();
 }
 export function setSound(on) {
-  model.sound = !!on; save(); syncPanel();
+  soundOn = !!on; save(); syncPanel();
 }
 export function resetTokens() {
   model.filled = [];
@@ -591,18 +667,35 @@ function showSection(name) {
   if ((window.scrollX || 0) !== x || (window.scrollY || 0) !== y) window.scrollTo(x, y); // old browsers ignore preventScroll
 }
 
-/** opts: from "button" | "reward" | "title" (settings-open), section "reward" = open at that group. */
+/** opts: mode "style" (default) | "boards" (T16: the same panel, other body); from "button" | "reward" | "title"
+    (settings-open, style only), section "reward" = open at that group. Opening the other mode while the panel is
+    open switches its body. */
 export function openPanel(opts) {
   const o = opts || {};
+  const mode = o.mode === 'boards' ? 'boards' : 'style';
   if (!stage || !panel) return;
-  if (stage.classList.contains('is-settings')) { if (o.section) showSection(o.section); return; }
-  lastFocus = document.activeElement;
-  stage.classList.add('is-settings');
-  panel.setAttribute('aria-hidden', 'false');
-  // Phone: the panel is a full-stage sheet, so it is a modal dialog; desktop: a side panel next to the board.
-  if (isPhone()) { panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); }
-  else { panel.removeAttribute('role'); panel.removeAttribute('aria-modal'); }
-  if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'true');
+  const wasOpen = stage.classList.contains('is-settings');
+  if (wasOpen && mode === panelMode) { if (o.section) showSection(o.section); return; }
+  if (mode === 'boards' && isFullscreen()) return; // no board switcher in fullscreen
+  if (!wasOpen) {
+    lastFocus = document.activeElement;
+    stage.classList.add('is-settings');
+    panel.setAttribute('aria-hidden', 'false');
+    // Phone: the panel is a full-stage sheet, so it is a modal dialog; desktop: a side panel next to the board.
+    if (isPhone()) { panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); }
+    else { panel.removeAttribute('role'); panel.removeAttribute('aria-modal'); }
+  }
+  setPanelMode(mode);
+  if (mode === 'boards') {
+    syncPanel();
+    loadUnlock(); // a fast first tap on a locked "+ New board"
+    fitSlots();
+    renderBoards();
+    loadBoardThumbs();
+    const cur = boardsBody && boardsBody.querySelector('.tb-brow.is-active .tb-bpick');
+    if (cur) cur.focus();
+    return;
+  }
   maybeShowFeedback();
   syncPanel();
   loadUnlock(); // the panel line (unlocked) and a fast first tap on a locked tile
@@ -619,10 +712,13 @@ export function closePanel() {
   stage.classList.remove('is-settings');
   panel.setAttribute('aria-hidden', 'true');
   panel.removeAttribute('role'); panel.removeAttribute('aria-modal');
-  if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
+  const back0 = panelMode === 'boards' ? boardsBtn : settingsBtn;
+  // both pills aria-expanded false; the header text stays while the panel slides out (the next open sets its mode)
+  [settingsBtn, boardsBtn].forEach(b => { if (b) b.setAttribute('aria-expanded', 'false'); });
+  closeConfirm(false);
   if (unlockCtl) unlockCtl.panelClosed(); // "Show" (the key) lasts until the panel closes
   fitSlots();
-  const back = (lastFocus && document.contains(lastFocus)) ? lastFocus : settingsBtn;
+  const back = (lastFocus && document.contains(lastFocus)) ? lastFocus : back0;
   if (back && typeof back.focus === 'function') back.focus();
   lastFocus = null;
 }
@@ -639,6 +735,288 @@ function trapFocus(ev) {
   }
 }
 
+
+/* =====================================================================
+   Boards panel (T16, 2026-11-18; docs/tool-spec.md § Boards): list, switch, + New board, Duplicate, Delete.
+   Titles are user text: always textContent, never in a signal.
+   ===================================================================== */
+const boardsBody = document.getElementById('tb-boards-body');
+const boardsBtn = stage && stage.querySelector('[data-tb="boards"]');
+let panelMode = 'style';
+let boardsBusy = false; // a Duplicate is copying its photos
+const COPY_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+const TRASH_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+const BOARDS_TEXT = {
+  hint: '🔒 More boards are locked — tap to unlock all extras.',
+  max: `${BOARDS_MAX} boards is the most for this browser. Delete one to add a new one.`,
+  note: 'Boards are saved in this browser only.',
+  full: 'Storage is full — no new board was added. Delete a board or a photo to make room.',
+  failed: 'Something went wrong — no new board was added. Please try again.'
+};
+const boardName = b => b.title || `Board ${boards.indexOf(b) + 1}`;
+
+function setPanelMode(mode) {
+  panelMode = mode;
+  const isBoards = mode === 'boards';
+  if (panelBody) panelBody.hidden = isBoards;
+  if (boardsBody) boardsBody.hidden = !isBoards;
+  const title = isBoards ? 'Your boards' : 'Style your board';
+  const head = document.getElementById('tb-panel-title');
+  if (head) head.textContent = title;
+  if (panel) panel.setAttribute('aria-label', title);
+  const x = panel && panel.querySelector('.tb-panel-head [data-tb="close"]');
+  if (x) x.setAttribute('aria-label', isBoards ? 'Close the boards panel' : 'Close the style panel');
+  const open = !!stage && stage.classList.contains('is-settings');
+  if (settingsBtn) settingsBtn.setAttribute('aria-expanded', open && !isBoards ? 'true' : 'false');
+  if (boardsBtn) boardsBtn.setAttribute('aria-expanded', open && isBoards ? 'true' : 'false');
+}
+const boardsOpen = () => !!stage && stage.classList.contains('is-settings') && panelMode === 'boards';
+
+/** The list. Keeps the focus on the same control (by role + board id) when it is rebuilt. */
+function renderBoards() {
+  if (!boardsBody) return;
+  const a = document.activeElement;
+  const keep = a && boardsBody.contains(a) ? [['bpick', 'bdup', 'bdel', 'bnew'].find(k => a.dataset && k in a.dataset), a.dataset && (a.dataset.bpick || a.dataset.bdup || a.dataset.bdel)] : null;
+  const canAdd = boards.length < BOARDS_MAX;
+  const hint = document.createElement('p');
+  hint.className = 'tb-hint';
+  hint.textContent = BOARDS_TEXT.hint;
+  const list = document.createElement('ul');
+  list.className = 'tb-blist';
+  list.setAttribute('aria-label', 'Your boards');
+  boards.forEach(b => {
+    const name = boardName(b);
+    const active = b === model;
+    const li = document.createElement('li');
+    li.className = 'tb-brow' + (active ? ' is-active' : '');
+    li.dataset.id = b.id;
+    const pick = unlockApi.button('tb-bpick', `${name}, ${b.filled.length} of ${b.slots} tokens${active ? ', current board' : ''}`);
+    pick.dataset.bpick = b.id;
+    if (active) pick.setAttribute('aria-current', 'true');
+    const rw = document.createElement('span');
+    rw.className = 'tb-brew';
+    rw.setAttribute('aria-hidden', 'true');
+    const photo = b.rewardPhoto ? photoCache.get(photoKey(b, 'reward')) : '';
+    if (photo) rw.style.backgroundImage = `url("${photo}")`; else rw.textContent = b.reward;
+    const nm = document.createElement('span');
+    nm.className = 'tb-bname';
+    nm.textContent = name;
+    const cnt = document.createElement('span');
+    cnt.className = 'tb-bcount';
+    cnt.setAttribute('aria-hidden', 'true');
+    cnt.textContent = `${b.filled.length} / ${b.slots}`;
+    pick.append(rw, nm, cnt);
+    const dup = unlockApi.button('tb-bicon', `Duplicate ${name}`);
+    dup.dataset.bdup = b.id;
+    dup.dataset.label = `Duplicate ${name}`;
+    dup.innerHTML = COPY_SVG + LOCK_SVG;
+    dup.disabled = !canAdd;
+    const del = unlockApi.button('tb-bicon', `Delete ${name}`);
+    del.dataset.bdel = b.id;
+    del.innerHTML = TRASH_SVG;
+    del.hidden = boards.length <= 1; // the last board can never be deleted
+    li.append(pick, dup, del);
+    list.appendChild(li);
+  });
+  const add = unlockApi.button('tb-bnew', '', '+ New board');
+  add.dataset.bnew = '';
+  add.dataset.label = 'New board';
+  add.insertAdjacentHTML('beforeend', LOCK_SVG);
+  add.disabled = !canAdd;
+  const max = document.createElement('p');
+  max.className = 'tb-bmax';
+  max.textContent = BOARDS_TEXT.max;
+  max.hidden = canAdd;
+  const note = document.createElement('p');
+  note.className = 'tb-photo-note';
+  note.textContent = BOARDS_TEXT.note;
+  boardsBody.replaceChildren(hint, list, add, max, note);
+  syncBoardLocks();
+  if (keep && keep[0]) {
+    const el = keep[0] === 'bnew' ? add : boardsBody.querySelector(`[data-${keep[0]}="${keep[1]}"]`);
+    if (el && !el.disabled && !el.hidden) el.focus();
+  }
+}
+/** One board is free; more boards are an extra (T16): "+ New board" and Duplicate carry the lock while locked.
+    A browser that already has several boards keeps them (switch, rename, delete work). */
+function syncBoardLocks() {
+  if (!boardsBody) return;
+  const locked = !unlocked;
+  const h = boardsBody.querySelector('.tb-hint');
+  if (h) h.hidden = !locked;
+  boardsBody.querySelectorAll('[data-bdup],[data-bnew]').forEach(b => { b.classList.toggle('is-locked', locked); lockLabel(b, locked); });
+}
+/** A locked "+ New board" / Duplicate: pro-click {item, from "boards"}, nudge, the offer dialog. Adds nothing. */
+function onBoardLocked(btn, item) {
+  if (unlockUi) signal('pro-click', { item, from: 'boards' });
+  nudge(btn);
+  if (unlockUi) openOffer('boards', btn);
+}
+/** Board count as a bucket for signals (never an id, a title or a position). */
+const boardsBucket = (n = boards.length) => n <= 1 ? '1' : n === 2 ? '2' : n <= 5 ? '3-5' : n <= 10 ? '6-10' : '11-20';
+
+/** Reward photos of the other boards, for the list (read once, then from memory). */
+async function loadBoardThumbs() {
+  let changed = false;
+  for (const b of boards.slice()) {
+    const key = photoKey(b, 'reward');
+    if (!b.rewardPhoto || photoCache.has(key)) continue;
+    setPhotoUrl(key, await photoGet(key));
+    changed = true;
+  }
+  if (changed && boardsOpen() && !boardsBody.querySelector('.tb-bconfirm')) renderBoards();
+}
+
+/** Show board b (the panel closes). The status pill names it. */
+function switchBoard(id) {
+  const b = boards.find(x => x.id === id);
+  if (!b) return;
+  const changed = b !== model;
+  if (changed) {
+    model = b;
+    completing = false; clearTimeout(completeTimer);
+    save(); render(); showHint(); loadPhotos();
+    signal('board-switch', { boards: boardsBucket() });
+  }
+  closePanel();
+  if (changed) showStatus(`Board: ${boardName(b)}`);
+}
+
+/** Put the caret in the board title on the board, text selected (after + New board / Duplicate). */
+function editTitle() {
+  if (!titleEl) return;
+  try { titleEl.focus({ preventScroll: true }); } catch (e) { titleEl.focus(); }
+  try { const r = document.createRange(); r.selectNodeContents(titleEl); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } catch (e) { /* ignore */ }
+}
+
+/** Ask the browser to keep this site's storage (Chrome / Edge decide without a prompt, Safari supports it).
+    Not on Firefox: it can show a permission prompt, which would confuse a child. Once per page load. */
+let persistAsked = false;
+function requestPersist() {
+  if (persistAsked || boards.length < 2) return;
+  persistAsked = true;
+  try {
+    if (/Firefox\//.test(navigator.userAgent || '')) return;
+    const st = navigator.storage;
+    if (st && typeof st.persist === 'function') { const r = st.persist(); if (r && r.catch) r.catch(() => {}); }
+  } catch (e) { /* ignore */ }
+}
+
+/** + New board (src = null: the defaults) or Duplicate (src = a board: same style and photos in use, 0 tokens).
+    Saved first; storage full = nothing added (also no copied photo left behind). */
+async function addBoard(src) {
+  if (boardsBusy || boards.length >= BOARDS_MAX || !unlocked) return; // more boards = an extra
+  const b = Object.assign(defaults(), src ? JSON.parse(JSON.stringify(src)) : {}, { filled: [] });
+  delete b.legacy;
+  b.id = newId();
+  boardsBusy = true;
+  const copied = [];
+  const dropCopies = () => Promise.all(copied.map(k => photoDelete(k)));
+  try {
+    if (src) {
+      for (const kind of ['reward', 'background']) {
+        const flag = kind === 'reward' ? 'rewardPhoto' : 'bgPhoto';
+        if (!src[flag]) continue; // only the photos the board shows
+        const to = photoKey(b, kind);
+        if (await photoCopy(photoKey(src, kind), to)) copied.push(to); else b[flag] = false;
+      }
+    }
+  } catch (e) {
+    await dropCopies();
+    boardsBusy = false;
+    showStatus(e && e.reason === 'quota' ? BOARDS_TEXT.full : BOARDS_TEXT.failed, 4000);
+    return;
+  }
+  const at = src ? boards.indexOf(src) + 1 : boards.length;
+  const prev = model;
+  boards.splice(at, 0, b);
+  model = b;
+  if (saveBoards() === 'quota') {
+    boards.splice(boards.indexOf(b), 1);
+    model = prev;
+    await dropCopies();
+    boardsBusy = false;
+    if (boardsOpen()) renderBoards();
+    showStatus(BOARDS_TEXT.full, 4000);
+    return;
+  }
+  boardsBusy = false;
+  signal('board-add', { via: src ? 'duplicate' : 'new', boards: boardsBucket() });
+  completing = false; clearTimeout(completeTimer);
+  closePanel();
+  render(); showHint(); loadPhotos();
+  requestPersist();
+  editTitle();
+}
+
+/** Delete with the inline confirm. The last board is never deleted; the active one hands over to the row above. */
+function askDelete(id) {
+  closeConfirm(false);
+  const row = boardsBody && boardsBody.querySelector(`.tb-brow[data-id="${id}"]`);
+  const b = boards.find(x => x.id === id);
+  if (!row || !b || boards.length <= 1) return;
+  const box = document.createElement('div');
+  box.className = 'tb-bconfirm';
+  box.setAttribute('role', 'group');
+  box.setAttribute('aria-label', 'Delete board');
+  const q = document.createElement('p');
+  q.textContent = `Delete “${boardName(b)}”? Its tokens and photos are removed from this browser.`;
+  const yes = unlockApi.button('tb-bbtn tb-bbtn-del', '', 'Delete');
+  yes.dataset.bconfirmDel = id;
+  const no = unlockApi.button('tb-bbtn', '', 'Cancel');
+  no.dataset.bconfirmCancel = id;
+  box.append(q, yes, no);
+  row.appendChild(box);
+  no.focus();
+}
+/** Close the inline confirm; refocus = back to its Delete button. True when one was open. */
+function closeConfirm(refocus) {
+  const box = boardsBody && boardsBody.querySelector('.tb-bconfirm');
+  if (!box) return false;
+  const id = box.querySelector('[data-bconfirm-cancel]').dataset.bconfirmCancel;
+  box.remove();
+  if (refocus) { const d = boardsBody.querySelector(`[data-bdel="${id}"]`); if (d) d.focus(); }
+  return true;
+}
+async function deleteBoard(id) {
+  const at = boards.findIndex(x => x.id === id);
+  if (at < 0 || boards.length <= 1) return;
+  const b = boards[at];
+  const wasActive = b === model;
+  const prev = model;
+  boards.splice(at, 1);
+  if (wasActive) model = boards[Math.max(0, at - 1)];
+  if (saveBoards() === 'quota') { boards.splice(at, 0, b); model = prev; showStatus(BOARDS_TEXT.failed.replace('no new board was added', 'the board was not deleted'), 4000); renderBoards(); return; }
+  for (const kind of ['reward', 'background']) {
+    const key = photoKey(b, kind);
+    setPhotoUrl(key, '');
+    photoCache.delete(key);
+    photoDelete(key); // after the save: a failed save never loses a photo
+  }
+  signal('board-delete', { boards: boardsBucket() });
+  if (wasActive) { completing = false; clearTimeout(completeTimer); render(); showHint(); loadPhotos(); }
+  renderBoards();
+  const next = boardsBody.querySelector(`[data-bpick="${boards[Math.max(0, at - 1)].id}"]`);
+  if (next) next.focus();
+}
+
+function wireBoards() {
+  if (!boardsBody) return;
+  boardsBody.addEventListener('click', ev => {
+    const t = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+    if (!t || !boardsBody.contains(t) || t.disabled) return;
+    const d = t.dataset;
+    if ('bpick' in d) { switchBoard(d.bpick); return; }
+    if ('bconfirmDel' in d) { deleteBoard(d.bconfirmDel); return; }
+    if ('bconfirmCancel' in d) { closeConfirm(true); return; }
+    if ('bdel' in d) { askDelete(d.bdel); return; }
+    if ('bdup' in d) {
+      if (t.classList.contains('is-locked')) { onBoardLocked(t, 'board-duplicate'); return; }
+      const src = boards.find(x => x.id === d.bdup); if (src) addBoard(src); return;
+    }
+    if ('bnew' in d) { if (t.classList.contains('is-locked')) onBoardLocked(t, 'board-new'); else addBoard(null); }
+  });
+}
 
 /* =====================================================================
    Settings panel content (T3): grids, controls, locked items, feedback
@@ -752,7 +1130,7 @@ function syncPanel() {
     lockLabel(b, !active);
   });
   const sound = document.getElementById('tb-sound');
-  if (sound) { sound.checked = !!model.sound; sound.setAttribute('aria-checked', model.sound ? 'true' : 'false'); }
+  if (sound) { sound.checked = soundOn; sound.setAttribute('aria-checked', soundOn ? 'true' : 'false'); }
 }
 
 /** Accessible name with ", locked" while locked (base name kept in data-label, like the tiles). */
@@ -790,13 +1168,16 @@ const goalLocked = () => !unlocked;
 const PHOTO_MAX = { reward: 512, background: 1600 };    // long side in px after shrinking
 const PHOTO_FILE_MAX = 30 * 1024 * 1024;                 // bigger files are refused before decoding
 const PHOTO_DB = 'tb-photos', PHOTO_STORE = 'photos';
-const photoUrl = { reward: '', background: '' };         // object / data URL of the stored photo (memory only)
-const photoShown = kind => (kind === 'reward' ? model.rewardPhoto : model.bgPhoto) && photoUrl[kind] ? photoUrl[kind] : '';
+// T16: photos are stored per board. Key = "<kind>" for the legacy board (migrated from tb-board), else "<id>:<kind>".
+const photoKey = (b, kind) => b.legacy ? kind : `${b.id}:${kind}`;
+const photoCache = new Map();                            // photo key → object / data URL ('' = checked, none); memory only
+const curPhoto = kind => photoCache.get(photoKey(model, kind)) || '';
+const photoShown = kind => (kind === 'reward' ? model.rewardPhoto : model.bgPhoto) && curPhoto(kind) ? curPhoto(kind) : '';
 const PHOTO_TEXT = {
   'too-large': 'This photo is too large. Please pick a smaller one.',
   'not-image': 'That file is not a photo. Please pick a JPG or PNG image.',
   decode: 'This photo can\'t be opened in this browser (HEIC?). Please pick a JPG or PNG.',
-  quota: 'There is not enough space in this browser to save the photo.',
+  quota: 'Storage is full — the photo was not saved. Remove a photo or delete a board to make room.',
   other: 'Something went wrong with this photo. Please try another one.'
 };
 class PhotoError extends Error { constructor(reason) { super(reason); this.reason = reason; } }
@@ -829,30 +1210,44 @@ const blobToDataUrl = blob => new Promise((resolve, reject) => {
 });
 
 /** Store the shrunk JPEG: IndexedDB (as bytes; old Safari cannot store Blobs), else localStorage as a data URL. */
-async function photoPut(kind, blob) {
+async function photoPut(key, blob) {
   const bytes = await blob.arrayBuffer();
-  try { await idbDo('readwrite', s => s.put({ type: 'image/jpeg', bytes }, kind)); try { localStorage.removeItem('tb-photo-' + kind); } catch (e) { /* ignore */ } return; }
+  try { await idbDo('readwrite', s => s.put({ type: 'image/jpeg', bytes }, key)); try { localStorage.removeItem('tb-photo-' + key); } catch (e) { /* ignore */ } return; }
   catch (e) { if (isQuota(e)) throw new PhotoError('quota'); } // other IndexedDB failure (private window, old browser): fallback
-  try { localStorage.setItem('tb-photo-' + kind, await blobToDataUrl(blob)); }
+  try { localStorage.setItem('tb-photo-' + key, await blobToDataUrl(blob)); }
+  catch (e) { throw new PhotoError(isQuota(e) ? 'quota' : 'other'); }
+}
+/** Copy a stored photo to another key (Duplicate). false = nothing stored under from. Throws PhotoError on failure. */
+async function photoCopy(from, to) {
+  let rec = null;
+  try { rec = await idbDo('readonly', s => s.get(from)); } catch (e) { rec = null; }
+  if (rec && rec.bytes) {
+    try { await idbDo('readwrite', s => s.put(rec, to)); return true; }
+    catch (e) { throw new PhotoError(isQuota(e) ? 'quota' : 'other'); }
+  }
+  let d = null;
+  try { d = localStorage.getItem('tb-photo-' + from); } catch (e) { d = null; }
+  if (!d) return false;
+  try { localStorage.setItem('tb-photo-' + to, d); return true; }
   catch (e) { throw new PhotoError(isQuota(e) ? 'quota' : 'other'); }
 }
 /** URL for a stored photo, or '' (nothing stored / storage blocked). */
-async function photoGet(kind) {
+async function photoGet(key) {
   try {
-    const v = await idbDo('readonly', s => s.get(kind));
+    const v = await idbDo('readonly', s => s.get(key));
     if (v && v.bytes) return URL.createObjectURL(new Blob([v.bytes], { type: v.type || 'image/jpeg' }));
   } catch (e) { /* fall through */ }
-  try { const d = localStorage.getItem('tb-photo-' + kind); if (d && d.startsWith('data:image/')) return d; } catch (e) { /* ignore */ }
+  try { const d = localStorage.getItem('tb-photo-' + key); if (d && d.startsWith('data:image/')) return d; } catch (e) { /* ignore */ }
   return '';
 }
-async function photoDelete(kind) {
-  try { await idbDo('readwrite', s => s.delete(kind)); } catch (e) { /* ignore */ }
-  try { localStorage.removeItem('tb-photo-' + kind); } catch (e) { /* ignore */ }
+async function photoDelete(key) {
+  try { await idbDo('readwrite', s => s.delete(key)); } catch (e) { /* ignore */ }
+  try { localStorage.removeItem('tb-photo-' + key); } catch (e) { /* ignore */ }
 }
-function setPhotoUrl(kind, url) {
-  const old = photoUrl[kind];
-  if (old && old.startsWith('blob:') && old !== url) URL.revokeObjectURL(old);
-  photoUrl[kind] = url || '';
+function setPhotoUrl(key, url) {
+  const old = photoCache.get(key);
+  if (old && old.startsWith('blob:') && old !== url) { try { URL.revokeObjectURL(old); } catch (e) { /* ignore */ } }
+  photoCache.set(key, url || '');
 }
 
 /** Decode on the device (createImageBitmap, else <img> from a local blob: URL), never over the network. */
@@ -927,7 +1322,7 @@ function syncPhotoTiles(active) {
   ['reward', 'background'].forEach(kind => {
     const tile = panelBody.querySelector(`.tb-thumb[data-kind="${kind === 'reward' ? 'photo-reward' : 'photo-bg'}"]`);
     if (!tile) return;
-    const url = photoUrl[kind];
+    const url = curPhoto(kind);
     const img = tile.querySelector('.tb-thumb-img');
     tile.classList.toggle('has-photo', !!url);
     if (img) {
@@ -957,7 +1352,7 @@ function pickPhoto(kind, tile) {
 /** Photo tile while usable: no photo yet (or tapped while in use) → pick one; otherwise show the stored one. */
 function selectPhotoTile(t) {
   const kind = t.dataset.kind === 'photo-reward' ? 'reward' : 'background';
-  if (!photoUrl[kind] || photoShown(kind)) { pickPhoto(kind, t); return; }
+  if (!curPhoto(kind) || photoShown(kind)) { pickPhoto(kind, t); return; }
   setPhotoOn(kind, true);
   if (photoShown(kind)) settingSignal(kind);
 }
@@ -968,13 +1363,14 @@ async function onPhotoPicked(input) {
   input.value = ''; // the same file can be picked again; the File object itself is dropped after this
   if (!file || !job) return;
   const { kind, tile } = job;
+  const board = model, key = photoKey(model, kind); // the board the photo was picked for (a switch may follow)
   photoMsg(kind, 'Preparing your photo…', 15000);
   try {
     const blob = await preparePhoto(file, kind);
-    await photoPut(kind, blob);
-    setPhotoUrl(kind, URL.createObjectURL(blob));
+    await photoPut(key, blob); // a failed write keeps the photo stored before under this key
+    setPhotoUrl(key, URL.createObjectURL(blob));
     photoMsg(kind, '', 0);
-    if (kind === 'reward') model.rewardPhoto = true; else model.bgPhoto = true;
+    if (kind === 'reward') board.rewardPhoto = true; else board.bgPhoto = true;
     save(); render();
     signal('photo-set', { kind });
     settingSignal(kind);
@@ -987,9 +1383,10 @@ async function onPhotoPicked(input) {
   if (tile && document.contains(tile)) tile.focus();
 }
 async function removePhoto(kind) {
-  await photoDelete(kind);
-  setPhotoUrl(kind, '');
-  if (kind === 'reward') model.rewardPhoto = false; else model.bgPhoto = false; // back to the emoji / colour
+  const board = model, key = photoKey(model, kind);
+  await photoDelete(key);
+  setPhotoUrl(key, '');
+  if (kind === 'reward') board.rewardPhoto = false; else board.bgPhoto = false; // back to the emoji / colour
   save(); render();
   signal('photo-remove', { kind });
   const tile = panelBody && panelBody.querySelector(`.tb-thumb[data-kind="${kind === 'reward' ? 'photo-reward' : 'photo-bg'}"]`);
@@ -997,14 +1394,18 @@ async function removePhoto(kind) {
 }
 /** On load: read stored photos (also when not in use, for the tile thumbnails). Missing / blocked = no photo. */
 async function loadPhotos() {
-  for (const kind of ['reward', 'background']) setPhotoUrl(kind, await photoGet(kind));
-  render();
+  const b = model;
+  for (const kind of ['reward', 'background']) {
+    const key = photoKey(b, kind);
+    if (!photoCache.has(key)) setPhotoUrl(key, await photoGet(key));
+  }
+  if (b === model) render(); // the board may have changed while reading
 }
 
 /* =====================================================================
    Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
    ===================================================================== */
-const UNLOCK_V = '20261116a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const UNLOCK_V = '20261118a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
 const importUnlock = () => import('./unlock.js?v=' + UNLOCK_V);
 let unlockCtl = null;     // the controller returned by unlock.js init(api)
 let unlockLoading = null; // the one import promise
@@ -1084,6 +1485,7 @@ function setUnlocked() {
   unlocked = readUnlocked();
   if (unlocked && !was) celebrateUnlock(panelBody ? Array.from(panelBody.querySelectorAll('.tb-thumb.is-locked')) : []);
   syncPanel(); // also the ✨ buttons
+  syncBoardLocks(); // nothing is added automatically
 }
 /** Unlock animation: the lock badges pop off one after another (< 1 s in total) with a sparkle. Reduced motion:
     only a calm fade. No sound, no confetti here. Purely visual: the classes are added before syncPanel() removes
@@ -1128,7 +1530,7 @@ const unlockApi = {
   /** "Style your board →": the panel at its top, focus on its first control. Closes nothing itself. */
   showStyle() {
     if (!stage || !panel) return;
-    if (!stage.classList.contains('is-settings')) { openPanel({ from: 'button' }); return; }
+    if (!stage.classList.contains('is-settings') || panelMode !== 'style') { openPanel({ from: 'button' }); return; }
     if (panelBody) panelBody.scrollTop = 0;
     const first = panel.querySelector(FOCUSABLE);
     if (first) first.focus();
@@ -1183,7 +1585,7 @@ function wirePanel() {
   const sound = document.getElementById('tb-sound');
   if (sound) sound.addEventListener('change', () => {
     setSound(sound.checked);
-    showStatus(model.sound ? 'Sound on' : 'Sound off');
+    showStatus(soundOn ? 'Sound on' : 'Sound off');
     settingSignal('sound');
   });
 }
@@ -1226,6 +1628,8 @@ function syncUnlockButtons() {
   try { document.documentElement.classList.toggle('tbu-has-key', unlocked); } catch (e) { /* ignore */ }
   const bar = stage && stage.querySelector('[data-tb="extras"]');
   if (bar) { bar.hidden = !show; bar.style.display = show ? '' : 'none'; } // inline too: tool.css loads after the critical CSS
+  const row = document.getElementById('tb-actions'); // T16: only the ✨ button is left in the row under the board
+  if (row) row.hidden = !show;
   if (celebrateExtrasBtn && !show) celebrateExtrasBtn.hidden = true;
   const pricing = document.getElementById('pricing');
   if (pricing && !unlockUi) pricing.hidden = true;
@@ -1357,6 +1761,7 @@ function exitExpanded(fromPopstate) {
 }
 
 function toggleFullscreen() {
+  if (boardsOpen()) closePanel(); // no board switcher in fullscreen
   if (nativeSupported()) {
     if (nativeActive()) {
       (document.exitFullscreen || document.webkitExitFullscreen).call(document);
@@ -1388,6 +1793,7 @@ if (stage) {
   document.addEventListener('pointerdown', () => root.classList.add('tb-pointer'), true);
   document.addEventListener('keydown', () => root.classList.remove('tb-pointer'), true);
   wirePanel();
+  wireBoards();
   wireBoardTitle();
   render();
   loadPhotos();
@@ -1405,6 +1811,19 @@ if (stage) {
   else if (unlocked || /[?&]dev-thanks=1(&|$)/.test(location.search)) loadUnlock();
   window.addEventListener('online', () => { if (window.__tbUnlock && !unlockCtl) loadUnlock(); });
   sendVisit();
+  requestPersist(); // a browser that already has several boards
+  // Another tab changed the boards: take its list (a stale tab must never write back over a board added or
+  // deleted there). This tab keeps showing its own board while it still exists.
+  window.addEventListener('storage', ev => {
+    if (ev.key !== BOARDS_KEY && ev.key !== null) return;
+    const keep = model.id;
+    load();
+    const b = boards.find(x => x.id === keep);
+    if (b) model = b;
+    completing = false; clearTimeout(completeTimer);
+    render(); showHint(); loadPhotos();
+    if (boardsOpen()) renderBoards();
+  });
   window.addEventListener('pagehide', endSession);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') endSession(); });
 
@@ -1422,7 +1841,10 @@ if (stage) {
 
   // Settings panel: "🎨 Style" under the board (toggles), the reward circle (opens at Reward)
   if (settingsBtn) settingsBtn.addEventListener('click', () => {
-    if (stage.classList.contains('is-settings')) closePanel(); else openPanel({ from: 'button' });
+    if (stage.classList.contains('is-settings') && panelMode === 'style') closePanel(); else openPanel({ from: 'button' });
+  });
+  if (boardsBtn) boardsBtn.addEventListener('click', () => {
+    if (boardsOpen()) closePanel(); else openPanel({ mode: 'boards' });
   });
   if (rewardEl) {
     rewardEl.addEventListener('click', () => openPanel({ from: 'reward', section: 'reward' }));
@@ -1437,8 +1859,8 @@ if (stage) {
   stage.addEventListener('click', ev => {
     if (!stage.classList.contains('is-settings') || isPhone()) return;
     if (!document.contains(ev.target)) return; // a control that re-rendered itself on this tap (Show / Hide in the unlocked line)
-    if (panel.contains(ev.target) || (settingsBtn && settingsBtn.contains(ev.target))) return;
-    if ((rewardEl && rewardEl.contains(ev.target)) || ev.target.closest('.tb-actions')) return; // reward = jump to Reward
+    if (panel.contains(ev.target) || (settingsBtn && settingsBtn.contains(ev.target)) || (boardsBtn && boardsBtn.contains(ev.target))) return;
+    if ((rewardEl && rewardEl.contains(ev.target)) || ev.target.closest('.tb-actions, .tb-tools')) return; // reward = jump to Reward
     if (ev.target.closest('.tbu-dialog')) return; // the offer dialog (inside the stage while in native fullscreen)
     if (ev.target && ev.target.id === 'tb-photo-input') return; // the file picker's click is not a tap outside
     closePanel();
@@ -1456,6 +1878,7 @@ if (stage) {
       }
     }
     if (ev.key === 'Escape') {
+      if (boardsOpen() && closeConfirm(true)) { ev.preventDefault(); return; } // the inline Delete confirm first
       if (stage.classList.contains('is-settings')) { ev.preventDefault(); closePanel(); return; }
       if (expanded) { ev.preventDefault(); exitExpanded(false); }
     }
@@ -1483,13 +1906,13 @@ if (stage) {
       tapSlot,
       fillAll() { for (let i = 0; i < model.slots; i++) if (!model.filled.includes(i)) tapSlot(i); },
       clearStorage() {
-        try { [STORAGE_KEY, 'tb-fs-hint', 'tb-tried', HINT_KEY, SETTINGS_KEY, LICENSE_KEY, 'tb-device', 'tb-mock'].forEach(k => { delete lsMem[k]; localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
-        Promise.all([photoDelete('reward'), photoDelete('background')]).finally(() => {
+        try { [STORAGE_KEY, BOARDS_KEY, 'tb-fs-hint', 'tb-tried', HINT_KEY, SETTINGS_KEY, LICENSE_KEY, 'tb-device', 'tb-mock'].forEach(k => { delete lsMem[k]; localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+        Promise.all(boards.flatMap(b => [photoDelete(photoKey(b, 'reward')), photoDelete(photoKey(b, 'background')), photoDelete('reward'), photoDelete('background')])).finally(() => {
           try { location.reload(); } catch (e) { /* not available in some test runners */ }
         });
       },
       slots3() { setSlots(3); }, slots5() { setSlots(5); }, slots10() { setSlots(10); },
-      soundToggle() { setSound(!model.sound); showStatus(model.sound ? 'Sound on' : 'Sound off'); },
+      soundToggle() { setSound(!soundOn); showStatus(soundOn ? 'Sound on' : 'Sound off'); },
       setTitlePrompt() {
         let v = null;
         try { v = window.prompt(`Board title (max ${TITLE_MAX} characters)`, model.title); } catch (e) { v = null; }

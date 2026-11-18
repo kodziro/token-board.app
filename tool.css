@@ -44,9 +44,18 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
 .tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
 .tb-act-style>span{font-size:1.15em}
-.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
-.tb-act-extras:hover{background:#EEF5FF}
-.tbu-has-key .tb-act-extras{display:none}
+.tb-act-extras{background:#7C4DFF;border-color:#7C4DFF;color:#fff}
+.tb-act-extras:hover{background:#6A3DE8;border-color:#6A3DE8}
+.tbu-has-key .tb-act-extras,.tbu-has-key .tb-actions{display:none}
+.tb-actions[hidden]{display:none}
+/* top-right toolbar (T16, 2026-11-18): 🗂️ Boards + 🎨 Style, solid blue; ✨ Unlock all extras (purple) stays under the board */
+.tb-tools{position:absolute;top:14px;right:14px;z-index:5;display:flex;gap:8px}
+.tb-tools .tb-act{min-width:0}
+.tb-act-boards{background:#1F6FD1;border-color:#1F6FD1;color:#fff}
+.tb-act-boards:hover{background:#1A5FB4;border-color:#1A5FB4}
+.tb-act-boards>span{font-size:1.15em}
+@media(max-width:699px){.tb-tools{right:12px;gap:6px}.tb-tools .tb-act{padding:0 12px;font-size:.9rem}}
+@media(min-width:820px){.tb-tools{transition:right .25s ease}.tb-stage.is-settings .tb-tools{right:386px}} /* desktop: the toolbar moves left of the open panel (narrower: it stays under the panel) */
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -95,7 +104,7 @@ html{scroll-behavior:smooth}
 .tb-thumb-img{display:flex;align-items:center;justify-content:center}
 .tb-thumb-bg .tb-thumb-img{position:absolute;inset:5px;border-radius:9px;background:var(--c,#fff);box-shadow:inset 0 0 0 1px rgba(30,42,68,.12)}
 /* locked (2026-10-23): full colour like a free tile, only the small lock badge shows it (was: white tile, content at .45) */
-.tb-thumb.is-nudge{box-shadow:0 0 0 3px #1F6FD1}
+.tb-thumb.is-nudge,.tb-bicon.is-nudge,.tb-bnew.is-nudge{box-shadow:0 0 0 3px #1F6FD1}
 .tb-lock{position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:var(--tb-navy);color:#fff;display:flex;align-items:center;justify-content:center}
 .tb-lock svg{width:10px;height:10px;fill:currentColor}
 /* lock badge only while the item is locked */
@@ -211,6 +220,9 @@ html{scroll-behavior:smooth}
 .tb-stage:fullscreen .tb-actions{display:none}
 .tb-stage:-webkit-full-screen .tb-actions{display:none}
 .tb-stage.is-expanded .tb-actions{display:none}
+.tb-stage:fullscreen .tb-tools{display:none}
+.tb-stage:-webkit-full-screen .tb-tools{display:none}
+.tb-stage.is-expanded .tb-tools{display:none}
 .tb-stage:fullscreen .tb-empty-hint{display:none}
 .tb-stage:-webkit-full-screen .tb-empty-hint{display:none}
 .tb-stage.is-expanded .tb-empty-hint{display:none}
@@ -229,12 +241,12 @@ html{scroll-behavior:smooth}
 /* focus ring on the pills + reward circle: keyboard only (tool.js sets html.tb-pointer after a mouse / touch press),
    one dark ring outside the pill so it never reads as a second accent border */
 .tb-act:focus-visible,.tb-reward:focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
-.tb-act-style:focus-visible{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--tb-navy)} /* dark pill: white inner + navy outer ring */
+.tb-act-style:focus-visible,.tb-act-boards:focus-visible{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--tb-navy)} /* dark pill: white inner + navy outer ring */
 .tb-pointer .tb-act:focus,.tb-pointer .tb-reward:focus{outline:none;box-shadow:none}
 .tb-pointer .tb-panel button:focus{outline:none} /* × and every panel button: ring only after a key press (Enter on 🎨 Style still shows it on ×) */
 .tb-pointer .tb-complete button:focus{outline:none} /* celebration: Hooray (focused by script after a tap) + the extras button */
 .tb-act:focus:not(:focus-visible),.tb-reward:focus:not(:focus-visible){outline:none}
-.tb-act-style:focus:not(:focus-visible){box-shadow:none}
+.tb-act-style:focus:not(:focus-visible),.tb-act-boards:focus:not(:focus-visible){box-shadow:none}
 @media(max-width:699px){.tb-stage.is-settings .tb-actions{display:none}}
 
 /* ---- celebration overlay (shown by .is-complete; role=dialog, focus stays on Hooray, Escape = Hooray) ---- */
@@ -423,3 +435,33 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-pricing .tbu-load-fail{margin:0 0 12px;text-align:left} /* unlock.js could not be loaded after a tap on a card button */
 .tbu-pricing .tbu-fine{margin:0;text-align:left}
 .tbu-pricing .tbu-status{margin:0;font-weight:700}
+
+/* ---- Boards panel (T16, 2026-11-18): the same panel as Style, other body (#tb-boards-body) ---- */
+.tb-panel-body[hidden]{display:none}
+.tb-boards-body{gap:12px}
+.tb-boards-body .tb-hint{margin:0}
+.tb-blist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tb-brow{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:2px 4px 2px 2px;border-radius:14px;background:#F2F2F4;border:3px solid transparent}
+.tb-brow.is-active{border-color:var(--tb-accent);background:#E3F0FF}
+.tb-bpick{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 8px;border:0;border-radius:11px;background:none;color:var(--tb-navy);font:inherit;text-align:left;cursor:pointer}
+.tb-bpick:hover{background:rgba(77,163,255,.12)}
+.tb-brew{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:#fff center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1}
+.tb-bname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.tb-bcount{flex:0 0 auto;font-size:.85rem;color:#4a5480;font-variant-numeric:tabular-nums}
+.tb-bicon{position:relative;flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:10px;background:none;color:var(--tb-navy);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tb-bicon:hover{background:rgba(77,163,255,.15)}
+.tb-bicon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tb-bicon .tb-lock svg,.tb-bnew .tb-lock svg{width:10px;height:10px;fill:currentColor;stroke:none}
+.tb-bicon .tb-lock{right:2px;bottom:2px}
+.tb-bicon[disabled],.tb-bnew[disabled]{opacity:.45;cursor:default}
+.tb-bicon:not(.is-locked) .tb-lock,.tb-bnew:not(.is-locked) .tb-lock{display:none}
+.tb-bnew{position:relative;width:100%;min-height:48px;padding:0 40px;border:2px dashed var(--tb-accent);border-radius:14px;background:#F5FAFF;color:var(--tb-navy);font:inherit;font-weight:700;cursor:pointer}
+.tb-bnew:not([disabled]):hover{background:#E3F0FF}
+.tb-bnew .tb-lock{right:12px;bottom:auto;top:50%;margin-top:-9px}
+.tb-bmax{margin:0;font-size:.85rem;line-height:1.3;color:#5B6478}
+.tb-boards-body .tb-photo-note{margin:0}
+.tb-bconfirm{flex:1 0 100%;padding:4px 8px 8px}
+.tb-bconfirm p{margin:0 0 8px;font-size:.9rem;line-height:1.3;color:var(--tb-navy);overflow-wrap:anywhere}
+.tb-bbtn{min-height:44px;margin:0 8px 0 0;padding:0 16px;border:1.5px solid var(--tb-accent);border-radius:999px;background:#fff;color:var(--tb-navy);font:inherit;font-weight:600;cursor:pointer}
+.tb-bbtn-del{background:#B3261E;border-color:#B3261E;color:#fff}
+.tb-bbtn-del:hover{background:#8C1D18;border-color:#8C1D18}
