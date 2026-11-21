@@ -353,6 +353,7 @@ body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
 .tbu-dialog-x:hover{background:var(--tb-slot);color:var(--tb-navy)}
 html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-title{max-width:10.5em;margin:0 40px 8px 0;text-wrap:balance;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2;color:var(--tb-navy)}
+.tbu-context{margin:0 40px 6px 0;font-size:.9rem;font-weight:700;line-height:1.3;color:#3D4763} /* above the title: the tapped group (2026-11-21); the right margin keeps it clear of × */
 .tbu-lead{margin:0 0 12px;font-size:.98rem;line-height:1.45}
 .tbu-preview{display:flex;justify-content:center;gap:6px;margin:0 0 12px;font-size:28px;line-height:1.2}
 /* the Unlock button (dialog + price card): two lines; "Style your board →" uses the same look */
@@ -377,6 +378,10 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 /* the three bottom lines of the offer: left-aligned, small even gaps; 44 px tap targets on touch screens */
 .tbu-see,.tbu-restore-toggle{margin:4px 0 0;text-align:left;font-size:.9rem}
 .tbu-fine+.tbu-see{margin-top:0}
+.tbu-fine+.tbu-app{margin-top:0}
+.tbu-app{margin:4px 0 0;text-align:left;font-size:.9rem} /* iPhone / iPad: the quiet App Store link under the offer */
+.tbu-applink{display:inline-flex;align-items:center;min-height:24px;color:#1F6FD1;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+@media (pointer:coarse){.tbu-applink{min-height:44px}}
 .tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:24px;margin-left:-6px}
 @media (pointer:coarse){.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
 .tbu-quiet{margin:8px 0 0;text-align:left;font-size:.85rem;color:#5B6478}

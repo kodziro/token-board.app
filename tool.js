@@ -8,6 +8,9 @@
     tool-session gets seq ("1"|"2"|"3+") and total (the tap spans of this page load added up, same buckets as
     minutes). The feedback thumbs ("Was it useful today?", signal feedback, localStorage tb-feedback) are removed:
     1 vote in 27 days; an old tb-feedback entry is deleted on load. unlock.js: dialog-close, dialogFrom (UNLOCK_V 20261121a).
+  Offer dialog (2026-11-21, ?v=20261121b): the entry points pass the tapped group to unlock.js (context line above
+    the title); unlockApi.os lets the offer show a quiet App Store link on iPhone / iPad. The web unlock stays the
+    main button on every system (User 2026-11-21).
 
   Boards (T16, 2026-11-18, ?v=20261118a; docs/tool-spec.md § Boards): up to 20 boards per browser in localStorage
     tb-boards (the old tb-board is migrated as the legacy board 1 and keeps a copy of the active board). A third pill
@@ -95,7 +98,7 @@
 
 import { send, setContext, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261121a';
 
-const BUILD_V = '20261121a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
+const BUILD_V = '20261121b'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -866,7 +869,7 @@ function syncBoardLocks() {
 function onBoardLocked(btn, item) {
   if (unlockUi) signal('pro-click', { item, from: 'boards' });
   nudge(btn);
-  if (unlockUi) openOffer('boards', btn);
+  if (unlockUi) openOffer('boards', btn, 'boards');
 }
 /** Board count as a bucket for signals (never an id, a title or a position). */
 const boardsBucket = (n = boards.length) => n <= 1 ? '1' : n === 2 ? '2' : n <= 5 ? '3-5' : n <= 10 ? '6-10' : '11-20';
@@ -1423,7 +1426,7 @@ async function loadPhotos() {
 /* =====================================================================
    Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
    ===================================================================== */
-const UNLOCK_V = '20261121a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const UNLOCK_V = '20261121b'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
 const importUnlock = () => import('./unlock.js?v=' + UNLOCK_V);
 let unlockCtl = null;     // the controller returned by unlock.js init(api)
 let unlockLoading = null; // the one import promise
@@ -1439,13 +1442,13 @@ function loadUnlock() {
   return unlockLoading;
 }
 /** Open the offer dialog. from = panel | toolbar | celebration; back = the element that gets the focus back. */
-function openOffer(from, back) {
+function openOffer(from, back, group) {
   // pending: the page came back from payment / a restore link and unlock.js is not in yet. Its init handles that
   // session or key itself (and opens the dialog), so this tap must not open a second view or start a second request.
   const pending = !!window.__tbUnlock;
   loadUnlock().then(c => {
     if (!c) { unlockLoadFailed(); return; }
-    if (!pending) c.show(from, back || null);
+    if (!pending) c.show(from, back || null, group || null);
   });
 }
 /** unlock.js could not be loaded after a tap on an entry point (offline): the status pill for 4 s. No signal;
@@ -1481,13 +1484,18 @@ function loadForReturn(attempt) {
 function onLockedTap(btn) {
   if (unlockUi) signal('pro-click', { item: btn.dataset.item, from: 'panel' });
   nudge(btn);
-  if (unlockUi) openOffer('panel', btn);
+  if (unlockUi) openOffer('panel', btn, offerGroup(btn.dataset.item));
+}
+/** pro-click item → the group named in the offer's context line (unlock.js STRINGS.context). */
+function offerGroup(item) {
+  const s = String(item || '');
+  return s.startsWith('photo-') ? 'photo' : s.startsWith('reward-') ? 'reward' : s.startsWith('token-') ? 'token' : s.startsWith('bg-') ? 'bg' : null;
 }
 /** Locked goal stepper / number input (T15): pro-click {item "goal-stepper"}, then the offer dialog. */
 function onGoalLocked(el) {
   if (!unlockUi) { nudge(el); return; }
   signal('pro-click', { item: 'goal-stepper', from: 'panel' });
-  openOffer('panel', el);
+  openOffer('panel', el, 'goal');
 }
 /** The ✨ buttons (under the board, celebration): pro-click {item "extras", from}, then the offer dialog. */
 function openExtras(from, back) {
@@ -1534,6 +1542,7 @@ const unlockApi = {
     return b;
   },
   lsGet, lsSet,
+  os: osName(),   // the same coarse OS as the os param of the signals: the offer shows its App Store link on ios / ipados
   get reducedMotion() { return reducedMotion(); },
   isFullscreen: () => isFullscreen(),
   // the stage while it is in NATIVE fullscreen (the dialog is attached inside it then), else null
