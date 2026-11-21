@@ -6,8 +6,11 @@
   - Loads @telemetrydeck/sdk 2.0.4 from this site (assets/vendor/, self-hosted since S1, 2026-11-14) at runtime, lazily: after the window load event in
     an idle slot (2 s at most), so it never competes with first paint. If it fails, nothing is sent
     and the tool keeps working. Signals sent before the SDK is ready wait in a short queue.
-  - send(name, payload): one signal, payload + { page, source, path, referrer }. Values are short
-    bucketed strings. The board title is never sent (tool.js only passes what:'title').
+  - send(name, payload): one signal, { os, unlocked, visitNth, v } + payload + { page, source, path, referrer }.
+    Values are short bucketed strings. The board title is never sent (tool.js only passes what:'title').
+  - setContext({ os, unlocked, visitNth, v }) (2026-11-21): the four common params, set by tool.js — os (coarse,
+    from the user agent), unlocked "yes"|"no", visitNth (the bucket of the visit signal), v (the build id of
+    tool.js). "unknown" until set. A signal's own param of the same name wins (tool-start os / unlocked).
   - Cookieless: clientUser is a random value per page load, never stored.
   - Test mode (signals flagged as test data in TelemetryDeck AND echoed to window.__tbLog):
     ?test=1 in the URL, body[data-td-test="1"], localhost / 127.x / file:, or the page load right after a
@@ -99,9 +102,21 @@ function scheduleSdk() {
 }
 scheduleSdk();
 
+/* Common params (2026-11-21): on every signal, so each one can be split by device, unlock state, visit count and
+   build without a funnel. Only these four keys, only short strings from a fixed alphabet — never user text. */
+const CONTEXT_KEYS = ['os', 'unlocked', 'visitNth', 'v'];
+const context = { os: 'unknown', unlocked: 'unknown', visitNth: 'unknown', v: 'unknown' };
+export function setContext(values) {
+  if (!values) return;
+  for (const k of CONTEXT_KEYS) {
+    const x = values[k];
+    if (typeof x === 'string' && /^[0-9A-Za-z+<-]{1,12}$/.test(x)) context[k] = x;
+  }
+}
+
 /** Send one signal. Returns nothing; never throws. */
 export function send(name, payload) {
-  const data = Object.assign({}, payload || {}, {
+  const data = Object.assign({}, context, payload || {}, {
     page: pageSlug(), source: source(), path: location.pathname, referrer: referrerHost() || 'none'
   });
   if (isTestMode()) {
