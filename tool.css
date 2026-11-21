@@ -179,11 +179,6 @@ html{scroll-behavior:smooth}
 .tb-switch input:checked~.tb-switch-track{background:var(--tb-accent)}
 .tb-switch input:checked~.tb-switch-track::after{transform:translateX(20px)}
 .tb-switch input:focus-visible~.tb-switch-track{outline:3px solid var(--tb-accent);outline-offset:3px}
-.tb-feedback{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;background:var(--tb-slot);border-radius:12px;padding:0 4px 0 12px} /* one line, at the bottom of the panel body */
-.tb-feedback[hidden]{display:none}
-.tb-feedback-q{flex:1 1 auto;min-width:0;font-weight:700;font-size:.9rem;line-height:1.2}
-.tb-feedback-btn{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--tb-navy);font-size:1.3rem;line-height:1;cursor:pointer}
-.tb-feedback-btn:hover{background:var(--tb-ring)}
 /* desktop: while the panel is open, the hero, board and privacy line move into the free space left of it
    (tool.js refits the slot grid to that width, so changes stay visible live) */
 @media(min-width:700px){

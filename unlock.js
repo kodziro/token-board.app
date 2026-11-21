@@ -39,9 +39,16 @@
   when via is checkout}, unlock-cancel {from}, unlock-fail {reason}, unlock-restore-attempt {via: key (typed) | url (?k=) | mail (?k=…&src=mail) | email (POST /magic)},
   dialog-open {from: panel|toolbar|celebration|boards|restore|manage — the visitor opened the dialog (or its
   fallback card); never sent when it opens by itself: Stripe return, ?k= result, checkout error}.
+  2026-11-21: dialog-close {from (= the from of its dialog-open), how: x|backdrop|escape|see-included|other,
+  secs: <3|3-10|10-30|30+} — when a dialog that sent dialog-open closes (native <dialog> only; not the fallback
+  card; not when the page is left with the dialog open — the payment page, a closed tab — and not after a
+  bfcache return). other = closed without one of our controls (the browser or system closed it).
+  dialogFrom (panel|toolbar|celebration|boards|none) on unlock-click, unlock-cancel and unlock-success
+  {via checkout}: the last offer entry point whose dialog the visitor opened in this page load, or before the
+  Stripe redirect — so a press on the price card after "See what's included ↓" keeps its origin.
   Never the key, the email, the device id or the session id.
   Across the Stripe redirect (sessionStorage, try/catch, front end only): tb-unlock-from = the from of the
-  pressed Unlock button, read and deleted on the return; tb-test-return = "1" when the page was in
+  pressed Unlock button and tb-unlock-dfrom = its dialogFrom, both read and deleted on the return; tb-test-return = "1" when the page was in
   TelemetryDeck test mode, read and deleted by assets/tool-signals.js on the next page load.
 
   Every user-facing string lives in STRINGS (plus the static pricing section and the static button texts
@@ -148,8 +155,9 @@ const UNLOCK_API = resolveApi(window.__tbUnlockApi || 'https://api.token-board.a
   (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } });
 
 const LS_LICENSE = 'tb-license', LS_DEVICE = 'tb-device', LS_MOCK = 'tb-mock', LS_DEV = 'tb-dev';
-const SS_FROM = 'tb-unlock-from', SS_TEST_RETURN = 'tb-test-return';   // sessionStorage, across the Stripe redirect only
+const SS_FROM = 'tb-unlock-from', SS_DFROM = 'tb-unlock-dfrom', SS_TEST_RETURN = 'tb-test-return';   // sessionStorage, across the Stripe redirect only
 const FROM_VALUES = ['panel', 'toolbar', 'celebration', 'card', 'boards']; // boards: T16 (+ New board / Duplicate)        // unlock-click {from}; anything else is sent as "unknown"
+const DIALOG_FROM = ['panel', 'toolbar', 'celebration', 'boards'];   // dialogFrom: the offer entry points (not restore / manage); anything else is sent as "none"
 function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
 function ssTake(k) { let v = null; try { v = sessionStorage.getItem(k); sessionStorage.removeItem(k); } catch (e) {} return v; }
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -316,6 +324,9 @@ export default function init(api) {
     busy: false,
     openedFrom: 'unknown', // opener of the dialog → unlock-click {from} for the dialog's own button
     returnFrom: 'unknown', // Stripe return only: the from of the Unlock press before the redirect (handleUrl)
+    openHow: null,        // the from of the dialog-open of the open dialog → dialog-close {from}; null = it opened by itself
+    openedAt: 0,          // ms, when that dialog opened → dialog-close {secs}
+    dialogFrom: 'none',   // the last offer entry point whose dialog the visitor opened (this page load, or before the Stripe redirect)
     justBought: false,    // thank-you after a real purchase (verify → unlockedNow 'checkout'); cleared when the dialog closes
     preview: null,        // dev hook only (?dev-thanks=1): example key shown in the dialog, never stored
     restoreOpen: false,   // dialog offer view: restore field expanded (restore mode, or the link was pressed)
@@ -403,19 +414,20 @@ export default function init(api) {
 
   /* ---------- the dialog (native <dialog>, top layer; built on first open) ---------- */
   let dlg = null, dlgBody = null, opener = null;
+  let closeHow = 'other';   // set just before closeDialog() by the control that closes it → dialog-close {how}
   function buildDialog() {
     dlg = document.createElement('dialog');
     dlg.className = 'tbu-dialog' + (api.reducedMotion ? ' tbu-reduced' : '');
     dlg.setAttribute('aria-labelledby', 'tbu-dlg-title');
     const box = el('div', 'tbu-dialog-box');
     const x = button('tbu-dialog-x', S.close, '×');
-    x.addEventListener('click', () => closeDialog());
+    x.addEventListener('click', () => { closeHow = 'x'; closeDialog(); });
     dlgBody = el('div', 'tbu-dialog-body');
     box.appendChild(x); box.appendChild(dlgBody);
     dlg.appendChild(box);
-    dlg.addEventListener('click', (e) => { if (e.target === dlg) closeDialog(); });   // backdrop tap
-    dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape') e.stopPropagation(); });   // native cancel closes it; the stage's own Escape handler must not fire
-    dlg.addEventListener('cancel', (e) => { e.preventDefault(); closeDialog(); });
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) { closeHow = 'backdrop'; closeDialog(); } });   // backdrop tap
+    dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeHow = 'escape'; e.stopPropagation(); } });   // native cancel closes it; the stage's own Escape handler must not fire
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); closeHow = 'escape'; closeDialog(); });
     dlg.addEventListener('close', onDialogClosed);
     views.push({ host: dlgBody, variant: 'dialog' });
   }
@@ -430,7 +442,10 @@ export default function init(api) {
   // the visitor opens the dialog (an entry point, a Restore button, Manage): dialog-open {from: how}, then the dialog.
   // Everything that opens it without a tap (Stripe return, ?k= result, checkout error, dev hook) calls openDialog directly.
   function userOpen(how, from, focusRestore, back) {
+    if (dlg && dlg.open) { openDialog(from, focusRestore, false, back); return; }   // already open (showModal fallback without an inert page): no second dialog-open
     signal('dialog-open', { from: how });
+    if (DIALOG_FROM.indexOf(how) >= 0) state.dialogFrom = how;
+    if (DIALOG_OK) { state.openHow = how; state.openedAt = Date.now(); }   // → dialog-close when this dialog closes
     openDialog(from, focusRestore, false, back);
   }
   // from: 'panel' | 'toolbar' | 'celebration' | 'boards' | 'card' | 'unknown' (→ unlock-click {from} of the dialog's button);
@@ -473,6 +488,12 @@ export default function init(api) {
   }
   function closeDialog() { if (dlg && dlg.open) { try { dlg.close(); } catch (e) { onDialogClosed(); } } }
   function onDialogClosed() {
+    const how = closeHow; closeHow = 'other';
+    if (state.openHow) {   // only a dialog the visitor opened (it sent dialog-open); once per open
+      const ms = Date.now() - state.openedAt;
+      signal('dialog-close', { from: state.openHow, how, secs: ms < 3000 ? '<3' : ms < 10000 ? '3-10' : ms < 30000 ? '10-30' : '30+' });
+      state.openHow = null;
+    }
     unlockScroll();
     state.restoreOpen = false;   // the next open shows the collapsed "Already unlocked? Restore" link
     const wasThanks = state.justBought || !!state.preview;
@@ -581,6 +602,7 @@ export default function init(api) {
       const b = smallBtn(S.seeIncluded);
       b.addEventListener('click', () => {
         opener = null;   // the page scrolls to the pricing section: no focus jump back up
+        closeHow = 'see-included';
         closeDialog();
         try { pricing.scrollIntoView({ behavior: api.reducedMotion ? 'auto' : 'smooth', block: 'start' }); } catch (e) { try { pricing.scrollIntoView(); } catch (x) {} }
       });
@@ -758,7 +780,7 @@ export default function init(api) {
     state.justBought = via === 'checkout';   // the purchase view (purchase line, Style your board, confetti) — never for restores
     state.msgs = { main: null, restore: null };
     lsSet(LS_LICENSE, key);
-    signal('unlock-success', via === 'checkout' ? { via, from: state.returnFrom } : { via });
+    signal('unlock-success', via === 'checkout' ? { via, from: state.returnFrom, dialogFrom: state.dialogFrom } : { via });
     api.setUnlocked();
     render();
     if (dlg && dlg.open) dlg.scrollTop = 0;
@@ -769,12 +791,14 @@ export default function init(api) {
   async function checkout(from) {
     if (state.busy) return;
     if (FROM_VALUES.indexOf(from) < 0) from = 'unknown';   // same rule as unlock-cancel / unlock-success
-    signal('unlock-click', { from });
+    const dialogFrom = state.dialogFrom;
+    signal('unlock-click', { from, dialogFrom });
     setBusy(true, null);
     try {
       const r = await call('POST', '/checkout', {});
       if (r.status === 200 && r.json && typeof r.json.url === 'string') {
         ssSet(SS_FROM, from);                                  // → unlock-cancel / unlock-success {from} after the return
+        ssSet(SS_DFROM, dialogFrom);                           // → their dialogFrom
         if (api.isTestMode && api.isTestMode()) ssSet(SS_TEST_RETURN, '1');   // the return page load stays in test mode
         api.pauseForRedirect();   // leave native fullscreen and the expanded mode (R30)
         location.assign(r.json.url);
@@ -876,9 +900,11 @@ export default function init(api) {
     if (u.session || u.cancel) {     // Stripe return: which Unlock button started it (read once, deleted; else "unknown")
       const f = ssTake(SS_FROM);
       state.returnFrom = FROM_VALUES.indexOf(f) >= 0 ? f : 'unknown';
+      const g = ssTake(SS_DFROM);
+      state.dialogFrom = DIALOG_FROM.indexOf(g) >= 0 ? g : 'none';
     }
     if (u.session) { state.pendingSession = u.session; openDialog(state.returnFrom); verify(u.session); return; }
-    if (u.cancel) { signal('unlock-cancel', { from: state.returnFrom }); setMsg('main', S.cancelled, 'info'); openDialog(state.returnFrom); return; }
+    if (u.cancel) { signal('unlock-cancel', { from: state.returnFrom, dialogFrom: state.dialogFrom }); setMsg('main', S.cancelled, 'info'); openDialog(state.returnFrom); return; }
     if (u.k) {
       const key = normaliseKey(u.k);
       if (state.key && state.key === key) return;   // same key already stored: nothing to do (R25)
@@ -904,7 +930,8 @@ export default function init(api) {
     } catch (e) {}
   }
   // Safari back button from Stripe restores the page from the bfcache with the busy state of the click
-  window.addEventListener('pageshow', (e) => { if (e.persisted && state.busy) { setBusy(false); setMsg('main', ''); } });
+  // … and with the dialog still open: its later close must not count the time on the payment page (no dialog-close)
+  window.addEventListener('pageshow', (e) => { if (e.persisted) state.openHow = null; if (e.persisted && state.busy) { setBusy(false); setMsg('main', ''); } });
 
   /* ---------- mount ---------- */
   const slots = api.mount() || {};

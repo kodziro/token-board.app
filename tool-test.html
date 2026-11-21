@@ -52,15 +52,23 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
 .tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
 .tb-btn-fs[hidden]{display:none}
-/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
+/* buttons: ✨ Unlock all extras under the board (purple); 🎨 Style + 🗂️ Boards top right (T16) */
 .tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
 .tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
 .tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
 .tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
 .tb-act-style>span{font-size:1.15em}
-.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
-.tb-act-extras:hover{background:#EEF5FF}
-.tbu-has-key .tb-act-extras{display:none}
+.tb-act-extras{background:#7C4DFF;border-color:#7C4DFF;color:#fff}
+.tb-act-extras:hover{background:#6A3DE8;border-color:#6A3DE8}
+.tbu-has-key .tb-act-extras,.tbu-has-key .tb-actions{display:none}
+.tb-actions[hidden]{display:none}
+/* top-right toolbar (T16, 2026-11-18): 🗂️ Boards + 🎨 Style, solid blue; ✨ Unlock all extras (purple) stays under the board */
+.tb-tools{position:absolute;top:14px;right:14px;z-index:5;display:flex;gap:8px}
+.tb-tools .tb-act{min-width:0}
+.tb-act-boards{background:#1F6FD1;border-color:#1F6FD1;color:#fff}
+.tb-act-boards:hover{background:#1A5FB4;border-color:#1A5FB4}
+.tb-act-boards>span{font-size:1.15em}
+@media(max-width:699px){.tb-tools{right:12px;gap:6px}.tb-tools .tb-act{padding:0 12px;font-size:.9rem}}
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -74,9 +82,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool-next.css?v=20261114c">
-<link rel="stylesheet" href="tool-next.css?v=20261114c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool-next.css?v=20261114c"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261121a">
+<link rel="stylesheet" href="tool.css?v=20261121a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261121a"></noscript>
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
@@ -93,7 +101,7 @@ body{padding-bottom:240px}
 </style>
 <script>
 // Staging page only (worker/README.md § 8.3, § 8.4.6): ring 1 = the mock API; ?dev=1 stores the dev flag that shows the unlock UI.
-window.__tbUnlockApi='https://tokenboard-unlock-test.keepquiet-unlock-worker.workers.dev';
+window.__tbUnlockApi='mock';
 try{if(/[?&]dev=1(&|$)/.test(location.search))localStorage.setItem('tb-dev','1');}catch(e){}
 try{if(/^TB-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(localStorage.getItem('tb-license')||''))document.documentElement.classList.add('tbu-has-key');}catch(e){}
 (function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
@@ -110,8 +118,8 @@ window.__tbLog = function (name, payload) {
   try { console.log('[tb]', line); } catch (e) {}
 };
 </script>
-<link rel="modulepreload" href="assets/tool-signals-next.js?v=20261114d">
-<script type="module" src="tool-next.js?v=20261116a"></script>
+<link rel="modulepreload" href="assets/tool-signals.js?v=20261121a">
+<script type="module" src="tool.js?v=20261121a"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test" data-tbu-gate>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -131,6 +139,10 @@ window.__tbLog = function (name, payload) {
 
 <section id="board" class="tb-stage" data-tb-stage aria-label="Token board">
   <button type="button" class="tb-stage-btn tb-btn-fs" data-tb="fullscreen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tb-btn-fs-label">Fullscreen</span></button>
+  <div class="tb-tools" id="tb-tools">
+    <button type="button" class="tb-act tb-act-boards" data-tb="boards" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🗂️</span> Boards</button>
+    <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
+  </div>
 
   <h1 class="tb-heading"><span class="tb-title">Free Online Token Board for Kids</span></h1>
 
@@ -157,7 +169,6 @@ window.__tbLog = function (name, payload) {
       <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
     </div>
     <div class="tb-actions" id="tb-actions">
-      <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
       <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Unlock all extras</span></button>
     </div>
   </div>
@@ -217,13 +228,8 @@ window.__tbLog = function (name, payload) {
         </label>
       </section>
       <div class="tbu-line" id="tbu-line" hidden></div>
-      <div class="tb-feedback" id="tb-feedback" hidden>
-        <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
-        <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
-        <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
-        <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
-      </div>
     </div>
+    <div class="tb-panel-body tb-boards-body" id="tb-boards-body" hidden></div>
     <div class="tb-panel-done"><button type="button" class="tb-done" data-tb="close">Done</button></div>
   </aside>
 
@@ -247,6 +253,7 @@ window.__tbLog = function (name, payload) {
       <h3 class="tbu-pricing-h3">What’s included</h3>
       <ul class="tbu-pricing-list">
         <li>Your own photos as the reward and the background</li>
+        <li>Up to 20 boards — one for each child or goal</li>
         <li>Any token goal from 3 to 100</li>
         <li>All 59 rewards</li>
         <li>All 23 token icons</li>

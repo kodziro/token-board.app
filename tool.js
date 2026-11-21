@@ -3,6 +3,12 @@
   Design authority: docs/tool-spec.md (repo-internal). Protected facts: CLAUDE.md § Browser tool.
   Paid unlock contract: worker/README.md § 8 (browser side; § 8.4 = the offer dialog, entry points, signals).
 
+  Tracking (2026-11-21, ?v=20261121a; docs/tool-spec.md § Analytics): every signal carries the common params
+    os, unlocked, visitNth and v (setContext in assets/tool-signals.js; v = BUILD_V below = this file's ?v=).
+    tool-session gets seq ("1"|"2"|"3+") and total (the tap spans of this page load added up, same buckets as
+    minutes). The feedback thumbs ("Was it useful today?", signal feedback, localStorage tb-feedback) are removed:
+    1 vote in 27 days; an old tb-feedback entry is deleted on load. unlock.js: dialog-close, dialogFrom (UNLOCK_V 20261121a).
+
   Boards (T16, 2026-11-18, ?v=20261118a; docs/tool-spec.md § Boards): up to 20 boards per browser in localStorage
     tb-boards (the old tb-board is migrated as the legacy board 1 and keeps a copy of the active board). A third pill
     "🗂️ Boards" opens the same panel with another body (#tb-boards-body): switch, + New board, Duplicate, Delete
@@ -72,8 +78,8 @@
     idle; a later tap starts a new session); visit {nth, daysSinceFirst} once per page load from
     localStorage tb-visits {count, first}.
   T3 (2026-10-19): settings panel content (title, token icon, background, slots, reward, sound), locked
-    items with the "I'm interested" card, feedback thumbs, pro-view. Signals: setting-change {what},
-    pro-click {item, from}, pro-view, feedback {vote, minutes}. localStorage: tb-feedback {ts}.
+    items with the "I'm interested" card, feedback thumbs (removed 2026-11-21), pro-view. Signals: setting-change {what},
+    pro-click {item, from}, pro-view.
   T2 (2026-10-19): board core — model, slots 3/5/10, tap to earn/remove, pop + tone, celebration
     (confetti, "Hooray!" resets), Web Audio tones (lazy, only inside a tap, never when sound is off),
     localStorage persistence ("tb-board"), exports for T3/T4.
@@ -82,12 +88,14 @@
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
   Nothing personal is sent. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown),
-  tb-feedback {ts}, tb-visits {count, first}, tb-hint ("1" = empty-board hint done), tb-settings {count} (page loads
+  tb-visits {count, first}, tb-hint ("1" = empty-board hint done), tb-settings {count} (page loads
   with a panel open), tb-license (the license key; read here, written by unlock.js). IndexedDB: tb-photos (store
   photos: reward, background).
 */
 
-import { send, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261114d';
+import { send, setContext, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261121a';
+
+const BUILD_V = '20261121a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -461,18 +469,25 @@ let lastTap = 0;
 let sessionOpen = false;
 let startSent = false;  // tool-start: once per page load
 let idleTimer = 0;
+let sessionSeq = 0;     // tool-session signals sent in this page load
+let tapSpanTotal = 0;   // ms: the tap spans (first tap → last tap) of all sessions of this page load
 
 function minutesBucket(ms) {
   const m = ms / 60000;
   return m < 1 ? '<1' : m < 5 ? '1-5' : m < 15 ? '5-15' : m < 30 ? '15-30' : '30+';
 }
 
-/** tool-session once per session: on pagehide or after 10 min without a tap. */
+/** tool-session once per session: on pagehide, tab hidden or after 10 min without a tap. One page load can send
+    several (iOS Safari often fires no pagehide, so every "hidden" counts): seq numbers them, total is the running
+    sum of the tap spans — read the highest total per page load. A tap span is not the time on the page. */
 function endSession() {
   if (!sessionOpen) return;
   sessionOpen = false;
   clearTimeout(idleTimer);
-  signal('tool-session', { minutes: minutesBucket(Math.max(0, lastTap - sessionStart)) });
+  const span = Math.max(0, lastTap - sessionStart);
+  sessionSeq += 1;
+  tapSpanTotal += span;
+  signal('tool-session', { minutes: minutesBucket(span), seq: sessionSeq >= 3 ? '3+' : String(sessionSeq), total: minutesBucket(tapSpanTotal) });
 }
 
 function noteTap() {
@@ -519,8 +534,10 @@ function sendVisit() {
   const first = (v && typeof v.first === 'number' && v.first > 0 && v.first <= now) ? v.first : now;
   try { localStorage.setItem('tb-visits', JSON.stringify({ count, first })); } catch (e) { /* ignore */ }
   const days = Math.floor((now - first) / 86400000);
+  const nth = count === 1 ? '1' : count === 2 ? '2' : count <= 5 ? '3-5' : count <= 10 ? '6-10' : '11+';
+  setContext({ visitNth: nth }); // from here on every signal of this page load carries the same bucket
   signal('visit', {
-    nth: count === 1 ? '1' : count === 2 ? '2' : count <= 5 ? '3-5' : count <= 10 ? '6-10' : '11+',
+    nth,
     daysSinceFirst: days < 1 ? '0' : days <= 7 ? '1-7' : days <= 30 ? '8-30' : '31+'
   });
 }
@@ -696,7 +713,6 @@ export function openPanel(opts) {
     if (cur) cur.focus();
     return;
   }
-  maybeShowFeedback();
   syncPanel();
   loadUnlock(); // the panel line (unlocked) and a fast first tap on a locked tile
   fitSlots();
@@ -1019,7 +1035,7 @@ function wireBoards() {
 }
 
 /* =====================================================================
-   Settings panel content (T3): grids, controls, locked items, feedback
+   Settings panel content (T3): grids, controls, locked items
    ===================================================================== */
 const panelBody = document.getElementById('tb-panel-body');
 const LOCK_SVG = '<span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span>';
@@ -1045,6 +1061,8 @@ function lsSet(k, v) {
 }
 const readUnlocked = () => KEY_RE.test(lsGet(LICENSE_KEY) || '');
 let unlocked = readUnlocked();
+setContext({ os: osName(), unlocked: unlocked ? 'yes' : 'no', v: BUILD_V }); // common params of every signal (visitNth follows in sendVisit)
+try { localStorage.removeItem('tb-feedback'); } catch (e) { /* ignore */ } // the feedback line was removed 2026-11-21: its note is not kept
 try { localStorage.removeItem('tb-tried'); } catch (e) { /* ignore */ } // data of the earlier trial of the extras (removed 2026-11-14): an active trial ends here
 // Gate (tool-test.html = body[data-tbu-gate]): without localStorage tb-dev = "1" there is no unlock UI at all
 // (the ✨ buttons and the pricing section are hidden, a locked tap only nudges, unlock.js is never loaded).
@@ -1052,7 +1070,7 @@ const unlockUi = !(document.body && document.body.hasAttribute('data-tbu-gate'))
 // = pro-click item: token-<id> | bg-<id> | reward-<id> | photo-reward | photo-bg
 const itemKey = (kind, id) => kind.startsWith('photo-') ? kind : `${kind === 'bg' ? 'bg' : kind === 'icon' ? 'token' : 'reward'}-${id}`;
 
-/** Coarse OS from the user agent (no fingerprinting): sent as os in tool-start.
+/** Coarse OS from the user agent (no fingerprinting): sent as os with every signal (setContext; tool-start too).
     (Named os, not platform: TelemetryDeck's page views already fill a platform column with its own values.) */
 function osName() {
   const ua = navigator.userAgent || '';
@@ -1405,7 +1423,7 @@ async function loadPhotos() {
 /* =====================================================================
    Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
    ===================================================================== */
-const UNLOCK_V = '20261118a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const UNLOCK_V = '20261121a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
 const importUnlock = () => import('./unlock.js?v=' + UNLOCK_V);
 let unlockCtl = null;     // the controller returned by unlock.js init(api)
 let unlockLoading = null; // the one import promise
@@ -1483,6 +1501,7 @@ function openExtras(from, back) {
 function setUnlocked() {
   const was = unlocked;
   unlocked = readUnlocked();
+  setContext({ unlocked: unlocked ? 'yes' : 'no' });
   if (unlocked && !was) celebrateUnlock(panelBody ? Array.from(panelBody.querySelectorAll('.tb-thumb.is-locked')) : []);
   syncPanel(); // also the ✨ buttons
   syncBoardLocks(); // nothing is added automatically
@@ -1542,10 +1561,9 @@ function wirePanel() {
   if (!panelBody) return;
   buildPanel();
   panelBody.addEventListener('click', ev => {
-    const t = ev.target && ev.target.closest ? ev.target.closest('.tb-thumb, [data-fb], [data-photo-remove]') : null;
+    const t = ev.target && ev.target.closest ? ev.target.closest('.tb-thumb, [data-photo-remove]') : null;
     if (!t) return;
     if (t.hasAttribute('data-photo-remove')) { removePhoto(t.dataset.photoRemove); return; }
-    if (t.hasAttribute('data-fb')) { onFeedback(t.getAttribute('data-fb')); return; }
     if (t.classList.contains('is-locked')) { onLockedTap(t); return; }
     selectTile(t);
   });
@@ -1663,45 +1681,6 @@ function wireProCard() {
     }, { threshold: 0.5 });
     io.observe(card);
   } catch (e) { /* ignore */ }
-}
-
-/* ---- feedback thumbs ---- */
-const FEEDBACK_KEY = 'tb-feedback';
-const FEEDBACK_DAYS = 30;
-const FEEDBACK_MIN_MS = 2 * 60 * 1000;
-let feedbackTimer = 0;
-
-function feedbackRecent() {
-  try {
-    const v = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || 'null');
-    return !!(v && typeof v.ts === 'number' && Date.now() - v.ts < FEEDBACK_DAYS * 86400000);
-  } catch (e) { return false; }
-}
-function storeFeedback() {
-  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify({ ts: Date.now() })); } catch (e) { /* ignore */ }
-}
-function maybeShowFeedback() {
-  const line = document.getElementById('tb-feedback');
-  if (!line) return;
-  const eligible = sessionStart && (Date.now() - sessionStart) >= FEEDBACK_MIN_MS && !feedbackRecent();
-  line.hidden = !eligible;
-}
-function onFeedback(action) {
-  const line = document.getElementById('tb-feedback');
-  if (!line) return;
-  if (action === 'close') { storeFeedback(); line.hidden = true; return; }
-  const vote = action === 'up' ? 'up' : 'down';
-  signal('feedback', { vote, minutes: minutesBucket(sessionStart ? Date.now() - sessionStart : 0) });
-  storeFeedback();
-  const q = document.getElementById('tb-feedback-q');
-  line.querySelectorAll('[data-fb]').forEach(b => { b.hidden = true; });
-  if (q) q.textContent = 'Thanks!';
-  clearTimeout(feedbackTimer);
-  feedbackTimer = setTimeout(() => {
-    line.hidden = true;
-    if (q) q.textContent = 'Was it useful today?';
-    line.querySelectorAll('[data-fb]').forEach(b => { b.hidden = false; });
-  }, 3000);
 }
 
 /* =====================================================================
@@ -1927,6 +1906,7 @@ if (stage) {
         try { localStorage.removeItem(HINT_KEY); localStorage.removeItem(SETTINGS_KEY); } catch (e) { /* ignore */ }
         settingsOpenSent = false; showHint(); fitSlots(); showStatus('Hint + settings-open reset');
       },
+      /* tool-test.html "session +3 min": moves the session start back, to see the tool-session minutes / total buckets */
       sessionPlus3() { sessionStart = (sessionStart || Date.now()) - 3 * 60 * 1000; showStatus('Session start moved back 3 min'); },
       setSessionStart(ts) { sessionStart = ts; },
       simulatePagehide() { window.dispatchEvent(new Event('pagehide')); },
