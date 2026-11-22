@@ -277,7 +277,7 @@ body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
 
 /* ---- below the fold ---- */
 .tb-wrap{max-width:1120px;margin:0 auto;padding:0 22px}
-.tb-section{padding:48px 0 8px}
+.tb-section{padding-top:48px;padding-bottom:8px} /* longhands on purpose: the sections are "tb-section tb-wrap", a padding shorthand here would delete the 22 px side padding of .tb-wrap (fixed 2026-11-22: text touched the screen edge below 1164 px) */
 .tb-section h2{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.15;margin:0 0 16px}
 .tb-section p{margin:0 0 12px}
 .tb-section h2.tb-section-sub{margin-top:40px}
@@ -385,6 +385,10 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:24px;margin-left:-6px}
 @media (pointer:coarse){.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
 .tbu-quiet{margin:8px 0 0;text-align:left;font-size:.85rem;color:#5B6478}
+/* phones (touch + a short window): with the 44 px link rows the offer (context line + app link) is 679 px high and needs a 711 px window;
+   an iPhone shows about 660 px with the Safari bars. The preview row goes first (docs/tool-spec.md, offer dialog, Fit) and the gaps
+   between the bottom lines close: 679 -> 611 px. 800 px, not 711: a safety margin for browsers that report the bigger window (2026-11-22) */
+@media (pointer:coarse) and (max-height:800px){.tbu-preview{display:none}.tbu-app,.tbu-see,.tbu-restore-toggle,.tbu-quiet{margin-top:0}.tbu-dialog-box{padding-bottom:12px}}
 .tbu-restore{margin:8px 0 12px;padding:12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
 .tbu-restore label{display:block;margin:0 0 8px;font-weight:700;font-size:.9rem;line-height:1.3}
 .tbu-row{display:flex;gap:8px}
