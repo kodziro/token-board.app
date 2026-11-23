@@ -453,6 +453,9 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-plans{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:20px;align-items:start;max-width:920px;margin:0 auto}
 .tbu-plan{border:1px solid var(--tb-ring);border-radius:18px;padding:20px;background:#fff;text-align:left}
 .tbu-price-card{background:#F7FAFF;border:2px solid #4DA3FF}
+/* from 801 px wide the section is at least one window high (24 px = its scroll-margin-top), its content centred: after a jump to
+   #pricing a tall window shows the pricing alone, the next heading is below the fold. Only a minimum: a short window is unchanged (2026-11-23) */
+@media(min-width:801px){.tbu-pricing{display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 24px);min-height:calc(100dvh - 24px)}}
 /* up to 800 px: one column, the paid card first */
 @media(max-width:800px){.tbu-plans{grid-template-columns:minmax(0,1fr);max-width:440px}.tbu-price-card{order:-1}}
 .tbu-plan-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;margin:0 0 12px}
