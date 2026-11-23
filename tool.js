@@ -11,6 +11,9 @@
   Offer dialog (2026-11-21, ?v=20261121b): the entry points pass the tapped group to unlock.js (context line above
     the title); unlockApi.os lets the offer show a quiet App Store link on iPhone / iPad. The web unlock stays the
     main button on every system (User 2026-11-21).
+  Paywall clarity (2026-11-23, ?v=20261123a, UNLOCK_V 20261123a): the entry points also pass a small fixed "look" of the
+    tapped item (offerLook) → the mini board in the short offer dialog; pro-view carries via (nav | dialog | hash |
+    scroll); unlock.js adds group to dialog-open. Pricing section = two plan cards (static HTML in the pages).
 
   Boards (T16, 2026-11-18, ?v=20261118a; docs/tool-spec.md § Boards): up to 20 boards per browser in localStorage
     tb-boards (the old tb-board is migrated as the legacy board 1 and keeps a copy of the active board). A third pill
@@ -98,7 +101,7 @@
 
 import { send, setContext, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261121a';
 
-const BUILD_V = '20261121b'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
+const BUILD_V = '20261123a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -869,7 +872,7 @@ function syncBoardLocks() {
 function onBoardLocked(btn, item) {
   if (unlockUi) signal('pro-click', { item, from: 'boards' });
   nudge(btn);
-  if (unlockUi) openOffer('boards', btn, 'boards');
+  if (unlockUi) openOffer('boards', btn, 'boards', { kind: 'boards' });
 }
 /** Board count as a bucket for signals (never an id, a title or a position). */
 const boardsBucket = (n = boards.length) => n <= 1 ? '1' : n === 2 ? '2' : n <= 5 ? '3-5' : n <= 10 ? '6-10' : '11-20';
@@ -1426,7 +1429,7 @@ async function loadPhotos() {
 /* =====================================================================
    Paid unlock: entry points + the bridge to unlock.js (worker/README.md § 8.4)
    ===================================================================== */
-const UNLOCK_V = '20261121b'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
+const UNLOCK_V = '20261123a'; // bump with every change to unlock.js (which also bumps tool.js's own ?v=)
 const importUnlock = () => import('./unlock.js?v=' + UNLOCK_V);
 let unlockCtl = null;     // the controller returned by unlock.js init(api)
 let unlockLoading = null; // the one import promise
@@ -1442,13 +1445,13 @@ function loadUnlock() {
   return unlockLoading;
 }
 /** Open the offer dialog. from = panel | toolbar | celebration; back = the element that gets the focus back. */
-function openOffer(from, back, group) {
+function openOffer(from, back, group, look) {
   // pending: the page came back from payment / a restore link and unlock.js is not in yet. Its init handles that
   // session or key itself (and opens the dialog), so this tap must not open a second view or start a second request.
   const pending = !!window.__tbUnlock;
   loadUnlock().then(c => {
     if (!c) { unlockLoadFailed(); return; }
-    if (!pending) c.show(from, back || null, group || null);
+    if (!pending) c.show(from, back || null, group || null, look || null);
   });
 }
 /** unlock.js could not be loaded after a tap on an entry point (offline): the status pill for 4 s. No signal;
@@ -1484,7 +1487,18 @@ function loadForReturn(attempt) {
 function onLockedTap(btn) {
   if (unlockUi) signal('pro-click', { item: btn.dataset.item, from: 'panel' });
   nudge(btn);
-  if (unlockUi) openOffer('panel', btn, offerGroup(btn.dataset.item));
+  if (unlockUi) openOffer('panel', btn, offerGroup(btn.dataset.item), offerLook(btn.dataset.item));
+}
+/** pro-click item → what the offer dialog draws as its small picture (unlock.js lookPicture): fixed values from the
+    catalogs above only — never the board title, never a photo, never anything the visitor typed. Not sent in a signal. */
+function offerLook(item) {
+  const s = String(item || '');
+  if (s === 'photo-reward' || s === 'photo-bg') return { kind: s };
+  const id = s.slice(s.indexOf('-') + 1);
+  if (s.startsWith('reward-')) { const r = REWARDS.find(x => x.id === id); return r ? { kind: 'reward', emoji: r.emoji, name: r.name } : null; }
+  if (s.startsWith('token-')) { const i = ICONS.find(x => x.id === id); return i ? { kind: 'token', emoji: i.emoji, name: i.name } : null; }
+  if (s.startsWith('bg-')) { const b = bgById(id); return b ? { kind: 'bg', name: b.name, color: b.color, dark: b.dark } : null; }
+  return null;
 }
 /** pro-click item → the group named in the offer's context line (unlock.js STRINGS.context). */
 function offerGroup(item) {
@@ -1495,7 +1509,7 @@ function offerGroup(item) {
 function onGoalLocked(el) {
   if (!unlockUi) { nudge(el); return; }
   signal('pro-click', { item: 'goal-stepper', from: 'panel' });
-  openOffer('panel', el, 'goal');
+  openOffer('panel', el, 'goal', { kind: 'goal' });
 }
 /** The ✨ buttons (under the board, celebration): pro-click {item "extras", from}, then the offer dialog. */
 function openExtras(from, back) {
@@ -1555,6 +1569,8 @@ const unlockApi = {
   },
   setUnlocked,
   openPanel: () => openPanel({ from: 'button' }),
+  /** The offer dialog's "See what's included ↓" was pressed: the next pro-view is via "dialog". */
+  pricingJump: () => notePricingJump('dialog'),
   /** "Style your board →": the panel at its top, focus on its first control. Closes nothing itself. */
   showStyle() {
     if (!stage || !panel) return;
@@ -1661,6 +1677,19 @@ function syncUnlockButtons() {
   const pricing = document.getElementById('pricing');
   if (pricing && !unlockUi) pricing.hidden = true;
 }
+/** pro-view {via} (2026-11-23): how the visitor got to the price card — nav (a #pricing link on this page pressed in the
+    last 5 s), dialog (the offer dialog's "See what's included ↓" in the last 5 s), hash (the page was opened with
+    #pricing and the card is visible within 8 s), else scroll. */
+const PRICING_JUMP_MS = 5000, PRICING_HASH_MS = 8000;
+let pricingJump = null;
+const pricingHashAtLoad = location.hash === '#pricing', pageT0 = Date.now();
+function notePricingJump(via) { pricingJump = { via, t: Date.now() }; }
+function proViewVia() {
+  const now = Date.now();
+  if (pricingJump && now - pricingJump.t <= PRICING_JUMP_MS) return pricingJump.via;
+  if (pricingHashAtLoad && now - pageT0 <= PRICING_HASH_MS) return 'hash';
+  return 'scroll';
+}
 /** Price card: the main button starts the payment directly, the second one opens the dialog in restore mode
     (both in unlock.js: cardAction). unlock.js is loaded on the first pointer / focus on the card. */
 function wireProCard() {
@@ -1679,13 +1708,17 @@ function wireProCard() {
     card.addEventListener('focusin', warm, { once: true });
   }
   if (typeof IntersectionObserver !== 'function') return;
+  document.addEventListener('click', ev => { // a link to the pricing section on this page (header nav)
+    const a = ev.target && ev.target.closest ? ev.target.closest('a[href$="#pricing"]') : null;
+    if (a) notePricingJump('nav');
+  }, true);
   let seen = false; // once per page load
   try {
     const io = new IntersectionObserver(entries => {
       if (!seen && entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.5)) {
         seen = true;
         io.disconnect();
-        signal('pro-view', {});
+        signal('pro-view', { via: proViewVia() });
       }
     }, { threshold: 0.5 });
     io.observe(card);

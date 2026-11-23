@@ -352,10 +352,34 @@ body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
 .tbu-dialog-x{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;border-radius:50%;padding:0;background:none;color:#5B6478;font:400 1.6rem/1 system-ui,-apple-system,sans-serif;cursor:pointer}
 .tbu-dialog-x:hover{background:var(--tb-slot);color:var(--tb-navy)}
 html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
-.tbu-title{max-width:10.5em;margin:0 40px 8px 0;text-wrap:balance;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2;color:var(--tb-navy)}
+.tbu-title{margin:0 40px 8px 0;text-wrap:balance;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2;color:var(--tb-navy)}
 .tbu-context{margin:0 40px 6px 0;font-size:.9rem;font-weight:700;line-height:1.3;color:#3D4763} /* above the title: the tapped group (2026-11-21); the right margin keeps it clear of × */
 .tbu-lead{margin:0 0 12px;font-size:.98rem;line-height:1.45}
 .tbu-preview{display:flex;justify-content:center;gap:6px;margin:0 0 12px;font-size:28px;line-height:1.2}
+/* the picture of the tapped thing (2026-11-23): a mini token board from emoji and colour — slots, an arrow, the reward
+   circle. Also used, as static HTML, by the two plan cards of the pricing section. No text inside; the row is one role="img". */
+.tbu-look{gap:8px;flex-wrap:nowrap;font-size:1rem}
+.tbu-mb{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:8px 10px;border:1px solid var(--tb-ring);border-radius:14px;background:#fff;line-height:1}
+.tbu-mb-slots{display:flex;flex-wrap:wrap;gap:5px}
+.tbu-mb-slot{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--tb-slot);font-size:18px;line-height:1}
+.tbu-mb-slot.is-on{background:#fff;box-shadow:inset 0 0 0 1px var(--tb-ring)}
+.tbu-mb-arrow{font-size:16px;font-weight:800;color:#5B6478}
+.tbu-mb-reward{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:var(--tb-slot);font-size:24px;line-height:1}
+.tbu-mb-reward.is-photo{background:#EEF5FF;box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #4DA3FF}
+.tbu-mb.is-photo{background:linear-gradient(135deg,#BFE3FF 0%,#DFF5E3 55%,#FFF3C4 100%);border-color:#4DA3FF}
+.tbu-mb.is-photo::before{content:"🖼️";font-size:20px}
+.tbu-mb.is-dark{border-color:#1E2A44}
+.tbu-mb.is-dark .tbu-mb-slot:not(.is-on){background:rgba(255,255,255,.22)}
+.tbu-mb.is-dark .tbu-mb-arrow{color:#fff}
+.tbu-mb.is-many .tbu-mb-slots{width:215px;gap:4px}
+.tbu-mb.is-many .tbu-mb-slot{width:17px;height:17px;font-size:11px}
+.tbu-mb.is-small{flex:0 0 auto;gap:4px;padding:6px}
+.tbu-mb.is-small .tbu-mb-slots{flex-wrap:nowrap;gap:3px}
+.tbu-mb.is-small .tbu-mb-slot{width:17px;height:17px;font-size:11px}
+.tbu-mb.is-small .tbu-mb-arrow{font-size:11px}
+.tbu-mb.is-small .tbu-mb-reward{width:24px;height:24px;font-size:15px}
+/* up to 480 px the three small boards of the boards offer get smaller, so each stays on one row and all three fit the dialog */
+@media(max-width:480px){.tbu-look:has(.is-small){gap:5px}.tbu-mb.is-small{gap:3px;padding:5px}.tbu-mb.is-small .tbu-mb-slots{gap:2px}.tbu-mb.is-small .tbu-mb-slot{width:12px;height:12px;font-size:8px}.tbu-mb.is-small .tbu-mb-arrow{font-size:10px}.tbu-mb.is-small .tbu-mb-reward{width:20px;height:20px;font-size:13px}}
 /* the Unlock button (dialog + price card): two lines; "Style your board →" uses the same look */
 .tbu-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;min-height:56px;padding:8px 20px;border:0;border-radius:16px;background:#1F6FD1;color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:800;font-size:1.08rem;line-height:1.2;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(31,111,209,.32);transition:background .15s ease,transform .1s ease}
 .tbu-btn:hover{background:#1A5FB4}
@@ -371,24 +395,24 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-ghost[disabled],.tbu-sm[disabled]{cursor:default;opacity:.6}
 .tbu-trust{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:4px 14px;margin:12px 0;font-size:.82rem;line-height:1.3;color:#3D4763}
 .tbu-trust-item{display:inline-flex;align-items:center;gap:6px}
-.tbu-trust-item:nth-child(n+3){flex:0 0 100%} /* rows: [one-time payment, no subscription] / secure checkout / unlocks instantly */
 .tbu-trust-item svg{flex:0 0 14px;color:#1F6FD1}
 .tbu-fine{margin:0 0 8px;font-size:.8rem;line-height:1.4;color:#5B6478}
 .tbu-fine a,.tbu-quiet a,.tbu-msg a,.tbu-link{color:#1F6FD1}
-/* the three bottom lines of the offer: left-aligned, small even gaps; 44 px tap targets on touch screens */
-.tbu-see,.tbu-restore-toggle{margin:4px 0 0;text-align:left;font-size:.9rem}
-.tbu-fine+.tbu-see{margin-top:0}
-.tbu-fine+.tbu-app{margin-top:0}
+/* the bottom lines of the offer: one row of quiet links (it wraps on phones), the app link; 44 px tap targets on touch screens */
+.tbu-links{display:flex;flex-wrap:wrap;gap:0 18px;margin:0;text-align:left;font-size:.9rem}
 .tbu-app{margin:4px 0 0;text-align:left;font-size:.9rem} /* iPhone / iPad: the quiet App Store link under the offer */
 .tbu-applink{display:inline-flex;align-items:center;min-height:24px;color:#1F6FD1;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 @media (pointer:coarse){.tbu-applink{min-height:44px}}
-.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:24px;margin-left:-6px}
-@media (pointer:coarse){.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
+.tbu-links .tbu-sm{min-height:24px;margin-left:-6px}
+@media (pointer:coarse){.tbu-links .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
 .tbu-quiet{margin:8px 0 0;text-align:left;font-size:.85rem;color:#5B6478}
 /* phones (touch + a short window): with the 44 px link rows the offer (context line + app link) is 679 px high and needs a 711 px window;
    an iPhone shows about 660 px with the Safari bars. The preview row goes first (docs/tool-spec.md, offer dialog, Fit) and the gaps
    between the bottom lines close: 679 -> 611 px. 800 px, not 711: a safety margin for browsers that report the bigger window (2026-11-22) */
-@media (pointer:coarse) and (max-height:800px){.tbu-preview{display:none}.tbu-app,.tbu-see,.tbu-restore-toggle,.tbu-quiet{margin-top:0}.tbu-dialog-box{padding-bottom:12px}}
+@media (pointer:coarse) and (max-height:800px){.tbu-app,.tbu-quiet{margin-top:0}.tbu-dialog-box{padding-bottom:12px}}
+/* narrow touch phones (iPhone SE / mini, 360–375 px): the first step of the drop order (docs/tool-spec.md, offer dialog, SHORT FORM, Fit) —
+   the picture shrinks to one line of at most about 40 px and the title gets smaller so it stays on one line (2026-11-23) */
+@media (pointer:coarse) and (max-width:380px){.tbu-title{margin-right:36px;font-size:1.15rem}.tbu-dialog .tbu-look,.tbu-card .tbu-look{margin-bottom:10px}.tbu-dialog .tbu-mb,.tbu-card .tbu-mb{gap:6px;padding:4px 8px}.tbu-dialog .tbu-mb-slots,.tbu-card .tbu-mb-slots{flex-wrap:nowrap;gap:4px}.tbu-dialog .tbu-mb-slot,.tbu-card .tbu-mb-slot{width:24px;height:24px;font-size:14px}.tbu-dialog .tbu-mb-reward,.tbu-card .tbu-mb-reward{width:30px;height:30px;font-size:18px}.tbu-dialog .tbu-mb.is-many .tbu-mb-slots,.tbu-card .tbu-mb.is-many .tbu-mb-slots{flex-wrap:wrap;width:157px;gap:3px}.tbu-dialog .tbu-mb.is-many .tbu-mb-slot,.tbu-card .tbu-mb.is-many .tbu-mb-slot{width:13px;height:13px;font-size:9px}.tbu-dialog .tbu-mb.is-small,.tbu-card .tbu-mb.is-small{gap:3px;padding:5px}.tbu-dialog .tbu-mb.is-small .tbu-mb-slots,.tbu-card .tbu-mb.is-small .tbu-mb-slots{gap:2px}.tbu-dialog .tbu-mb.is-small .tbu-mb-slot,.tbu-card .tbu-mb.is-small .tbu-mb-slot{width:12px;height:12px;font-size:8px}.tbu-dialog .tbu-mb.is-small .tbu-mb-reward,.tbu-card .tbu-mb.is-small .tbu-mb-reward{width:20px;height:20px;font-size:13px}}
 .tbu-restore{margin:8px 0 12px;padding:12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
 .tbu-restore label{display:block;margin:0 0 8px;font-weight:700;font-size:.9rem;line-height:1.3}
 .tbu-row{display:flex;gap:8px}
@@ -419,26 +443,49 @@ html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
 .tbu-status .tbu-sm{padding:0 4px}
 .tbu-card{padding:14px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
 
-/* ---- pricing section (#pricing) + price card (#pro-card) ---- */
+/* ---- pricing section (#pricing): two plan cards, Free against All extras (#pro-card) — rebuilt 2026-11-23 ---- */
 .tbu-pricing[hidden]{display:none}
-.tbu-pricing-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
-.tbu-pricing-grid>*{min-width:0}
-@media(max-width:800px){.tbu-pricing-grid{grid-template-columns:1fr}}
+.tbu-pricing{scroll-margin-top:24px} /* a jump to #pricing (header nav, "See what's included ↓") lands with the eyebrow clear of the 59 px sticky header */
+.tbu-pricing-head{text-align:center}
 .tbu-pricing .tbu-eyebrow{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1F6FD1}
-.tbu-pricing-h3{margin:18px 0 10px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
-.tbu-pricing-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.tbu-pricing-list li{position:relative;padding-left:28px}
+.tbu-pricing h2{margin-bottom:8px}
+.tbu-pricing .tbu-pricing-sub{margin:0 0 20px}
+.tbu-plans{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:20px;align-items:start;max-width:920px;margin:0 auto}
+.tbu-plan{border:1px solid var(--tb-ring);border-radius:18px;padding:20px;background:#fff;text-align:left}
+.tbu-price-card{background:#F7FAFF;border:2px solid #4DA3FF}
+/* up to 800 px: one column, the paid card first */
+@media(max-width:800px){.tbu-plans{grid-template-columns:minmax(0,1fr);max-width:440px}.tbu-price-card{order:-1}}
+.tbu-plan-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;margin:0 0 12px}
+.tbu-pricing .tbu-price-name{flex:0 0 100%;margin:0 0 2px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tbu-pricing .tbu-price-amount{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.4rem;line-height:1.1}
+.tbu-plan-free .tbu-price-amount{font-size:1.9rem;color:#3D4763}
+.tbu-pricing .tbu-price-term{margin:0;font-weight:700;color:#5B6478}
+.tbu-pricing .tbu-preview{justify-content:flex-start;flex-wrap:wrap;margin:0 0 14px}
+.tbu-plan-pics{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 14px}
+.tbu-plan-emoji{display:flex;gap:6px;font-size:26px;line-height:1.2}
+.tbu-plan-dots{display:flex;gap:5px}
+.tbu-plan-dots span{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(30,42,68,.18)}
+.tbu-pricing-h3{margin:0 0 2px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.1rem;line-height:1.2}
+.tbu-pricing .tbu-plan-plus{margin:0 0 8px;font-size:.92rem;font-weight:700;color:#3D4763}
+.tbu-pricing-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px;font-size:.98rem;line-height:1.4}
+.tbu-pricing-list li{position:relative;padding-left:26px}
 .tbu-pricing-list li::before{content:"✓";position:absolute;left:2px;top:0;font-weight:800;color:#1F6FD1}
-.tbu-price-card{max-width:440px;background:#F7FAFF;border:1px solid var(--tb-ring);border-radius:18px;padding:22px 20px;text-align:center}
-.tbu-pricing .tbu-price-name{margin:0 0 4px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
-.tbu-pricing .tbu-price-amount{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.6rem;line-height:1.1}
-.tbu-pricing .tbu-price-term{margin:0 0 16px;font-weight:700;color:#5B6478}
+.tbu-plan-free .tbu-pricing-list li::before{color:#5B6478}
+@media(min-width:801px){.tbu-price-card .tbu-pricing-list{grid-template-columns:1fr 1fr;gap:6px 14px}}
+.tbu-plan-link{display:inline-flex;align-items:center;min-height:44px;color:#1F6FD1;font-weight:700;text-underline-offset:3px}
 .tbu-price-actions{display:flex;flex-direction:column;align-items:stretch}
-.tbu-price-actions .tbu-ghost{align-self:center;margin:0 0 12px}
+.tbu-price-actions .tbu-ghost{align-self:flex-start;margin:0}
 .tbu-pricing .tbu-trust{margin:12px 0}
-.tbu-pricing .tbu-load-fail{margin:0 0 12px;text-align:left} /* unlock.js could not be loaded after a tap on a card button */
-.tbu-pricing .tbu-fine{margin:0;text-align:left}
+.tbu-pricing .tbu-load-fail{margin:10px 0 0;text-align:left} /* unlock.js could not be loaded after a tap on a card button */
 .tbu-pricing .tbu-status{margin:0;font-weight:700}
+/* under both cards: the three service points ("With the unlock:"), then the long small print */
+.tbu-pricing-also{display:flex;flex-wrap:wrap;gap:4px 18px;max-width:920px;margin:18px auto 10px;padding:0;list-style:none;font-size:.92rem;line-height:1.4;color:#3D4763}
+.tbu-pricing-also li{position:relative;padding-left:22px}
+.tbu-pricing-also li::before{content:"✓";position:absolute;left:0;top:0;font-weight:800;color:#1F6FD1}
+.tbu-pricing-also li:first-child{padding-left:0;font-weight:800;color:var(--tb-navy)}
+.tbu-pricing-also li:first-child::before{content:none}
+.tbu-pricing .tbu-fine{max-width:920px;margin:0 auto;text-align:left}
+@media(max-width:800px){.tbu-pricing-also,.tbu-pricing .tbu-fine{max-width:440px}}
 
 /* ---- Boards panel (T16, 2026-11-18): the same panel as Style, other body (#tb-boards-body) ---- */
 .tb-panel-body[hidden]{display:none}

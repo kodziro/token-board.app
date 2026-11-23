@@ -95,9 +95,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261122a">
-<link rel="stylesheet" href="tool.css?v=20261122a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261122a"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261123a">
+<link rel="stylesheet" href="tool.css?v=20261123a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261123a"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -174,7 +174,7 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
     "url": "https://token-board.app/about.html"
   },
   "publisher": { "@type": "Organization", "@id": "https://token-board.app/#organization", "name": "Apps for Parents" },
-  "dateModified": "2026-11-22T12:00:00+01:00",
+  "dateModified": "2026-11-23T12:00:00+01:00",
   "description": "A free token board that runs in the browser: a child earns a token for each success and trades a full board for a reward chosen in advance. Pick a token goal of 3, 5 or 10 and a reward. More boards, other token goals, icons, backgrounds, rewards and your own photos are extras in an optional one-time unlock. Nothing is uploaded and no account is needed.",
   "featureList": [
     "Token goal of 3, 5 or 10 (any goal from 3 to 100 as an extra)",
@@ -358,7 +358,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 <script src="assets/vendor/telemetrydeck.min.js?v=20261114d" data-app-id="C2A6027C-00E1-4CC9-9FD5-C7A238880FF4" defer></script>
 <script type="module" src="assets/appstore-click.js?v=20261114d"></script>
 <link rel="modulepreload" href="assets/tool-signals.js?v=20261121a">
-<script type="module" src="tool.js?v=20261121b"></script>
+<script type="module" src="tool.js?v=20261123a"></script>
 </head>
 <body>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -493,12 +493,35 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 </section>
 
 <section id="pricing" class="tb-section tb-wrap tbu-pricing" aria-labelledby="pricing-title">
-  <div class="tbu-pricing-grid">
-    <div class="tbu-pricing-info">
-      <p class="tbu-eyebrow">Pricing</p>
-      <h2 id="pricing-title">One-time unlock, no subscription</h2>
-      <p class="tbu-pricing-sub">Everything in the free token board stays free. The unlock adds:</p>
+  <div class="tbu-pricing-head">
+    <p class="tbu-eyebrow">Pricing</p>
+    <h2 id="pricing-title">One-time unlock, no subscription</h2>
+    <p class="tbu-pricing-sub">The free token board stays free. The unlock adds the extras.</p>
+  </div>
+  <div class="tbu-plans">
+    <div class="tbu-plan tbu-plan-free">
+      <div class="tbu-plan-top">
+        <p class="tbu-price-name">Free</p>
+        <p class="tbu-price-amount">$0</p>
+      </div>
+      <p class="tbu-preview tbu-look" role="img" aria-label="The free token board: star tokens and a gift reward"><span aria-hidden="true"><span class="tbu-mb"><span class="tbu-mb-slots"><span class="tbu-mb-slot is-on">⭐</span><span class="tbu-mb-slot is-on">⭐</span><span class="tbu-mb-slot is-on">⭐</span><span class="tbu-mb-slot"></span><span class="tbu-mb-slot"></span></span><span class="tbu-mb-arrow">→</span><span class="tbu-mb-reward">🎁</span></span></span></p>
+      <ul class="tbu-pricing-list">
+        <li>One board</li>
+        <li>Token goal of 3, 5 or 10</li>
+        <li>Star token, white background, gift reward</li>
+        <li>No account, no ads</li>
+      </ul>
+      <a class="tbu-plan-link" href="#board">Use the free board ↑</a>
+    </div>
+    <div class="tbu-plan tbu-price-card" id="pro-card" data-tbu-card>
+      <div class="tbu-plan-top">
+        <p class="tbu-price-name">All extras</p>
+        <p class="tbu-price-amount">$19.99</p>
+        <p class="tbu-price-term">one-time</p>
+      </div>
+      <p class="tbu-plan-pics" role="img" aria-label="Examples of the extras: your own photo, rewards, token icons and the 8 backgrounds"><span class="tbu-plan-emoji" aria-hidden="true"><span>🖼️</span><span>🍦</span><span>🎮</span><span>🦄</span><span>❤️</span><span>🚀</span><span>🌈</span></span><span class="tbu-plan-dots" aria-hidden="true"><span style="background:#FFFFFF"></span><span style="background:#D9ECFF"></span><span style="background:#DFF5E3"></span><span style="background:#FFF3C4"></span><span style="background:#FFE0EC"></span><span style="background:#EADDFF"></span><span style="background:#E9EAEE"></span><span style="background:#1E2A44"></span></span></p>
       <h3 class="tbu-pricing-h3">What’s included</h3>
+      <p class="tbu-plan-plus">Everything in Free, plus:</p>
       <ul class="tbu-pricing-list">
         <li>Your own photos as the reward and the background</li>
         <li>Up to 20 boards — one for each child or goal</li>
@@ -506,23 +529,21 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
         <li>All 59 rewards</li>
         <li>All 23 token icons</li>
         <li>All 8 backgrounds</li>
-        <li>Works on every device you use — no device limit</li>
-        <li>Restore by license key or email</li>
-        <li>Lifetime, one payment</li>
       </ul>
-    </div>
-    <div class="tbu-price-card" id="pro-card" data-tbu-card>
-      <p class="tbu-price-name">Unlock all extras</p>
-      <p class="tbu-price-amount">$19.99</p>
-      <p class="tbu-price-term">one-time</p>
       <div class="tbu-price-actions" data-tbu-actions>
         <button class="tbu-btn" type="button" data-tbu-unlock data-tbu-primary><span class="tbu-u1">Unlock all extras</span><span class="tbu-u2">$19.99 one-time</span></button>
-        <p class="tbu-trust"><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>One-time payment</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>no subscription</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>secure checkout by Link (Stripe)</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg>unlocks instantly, key also emailed</span></p>
+        <p class="tbu-trust"><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.5" width="12.4" height="9" rx="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5"/></svg>Key sent by email</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>14-day refund on request</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>Secure checkout by Link (Stripe)</span></p>
         <button class="tbu-ghost" type="button" data-tbu-restore>Already unlocked? Restore</button>
-        <p class="tbu-fine">Web version only — the iPhone, iPad and Mac app is sold separately in the App Store. Price in USD, plus tax where applicable. Your license key is shown after payment and sent by email. Charged by Link (Stripe). Full refund on request within 14 days of the purchase. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
   </div>
+  <ul class="tbu-pricing-also">
+    <li>With the unlock:</li>
+    <li>Works on every device you use — no device limit</li>
+    <li>Restore by license key or email</li>
+    <li>Lifetime, one payment</li>
+  </ul>
+  <p class="tbu-fine">Web version only — the iPhone, iPad and Mac app is sold separately in the App Store. Price in USD, plus tax where applicable. Your license key is shown after payment and sent by email. Charged by Link (Stripe). Full refund on request within 14 days of the purchase. <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
 </section>
 
 <section id="faq" class="tb-section tb-wrap tb-faq">
@@ -750,7 +771,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       </div>
     </div>
     <div class="foot-note">
-      <p>© 2026 Natalia Jakubczyk-Gajewska. Made by Apps for Parents. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-11-22">November 22, 2026</time>.</p>
+      <p>© 2026 Natalia Jakubczyk-Gajewska. Made by Apps for Parents. Token Board: ABA Reward Chart is a support tool, not a substitute for professional advice from a BCBA or clinician. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. Last updated: <time datetime="2026-11-23">November 23, 2026</time>.</p>
     </div>
   </div>
 </footer>

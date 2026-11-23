@@ -12,8 +12,10 @@
 
   UI:
   - Entry points live in tool.js (locked tile, locked goal stepper / number input, the ✨ button under the
-    board, the ✨ celebration button): they call show(from, opener, group) → the offer dialog. group (reward |
-    token | bg | photo | goal | boards, or none) only picks the context line above the title (2026-11-21); on
+    board, the ✨ celebration button): they call show(from, opener, group, look) → the offer dialog. group (reward |
+    token | bg | photo | goal | boards, or none) picks the context line above the title (2026-11-21) and is the
+    group param of dialog-open (2026-11-23); look ({kind, emoji, name, color, dark}, fixed values from tool.js's
+    lists, 2026-11-23) picks the small picture: a mini board with the tapped reward / token icon / background; on
     iPhone / iPad (api.os) such an offer also ends with one quiet link to the app in the App Store.
   - Price card (#pricing → #pro-card[data-tbu-card]): its main button starts the payment directly
     (cardAction → checkout('card')); its second button opens the dialog in restore mode. After unlock the
@@ -21,10 +23,11 @@
   - Panel line (#tbu-line, bottom of the panel body): hidden while locked; unlocked →
     "✓ Unlocked · TB-••••-••••-1234 · Show · Manage".
   - Dialog (native <dialog>, showModal, top layer — above the phone sheet, the celebration and the
-    expanded stage; attached inside the stage while it is in native fullscreen): the offer (title, offer
-    line, preview row, the button, trust line, small print, "See what's included ↓", the collapsed
-    "Already unlocked? Restore" link — it expands the field —, Questions); restore mode opens the field
-    expanded; after a purchase or a restore → the thank-you / Manage view (key masked + Show / Copy,
+    expanded stage; attached inside the stage while it is in native fullscreen): the offer, short form of
+    2026-11-23 (context line, title, offer line, the picture, the button, a 3-item trust line, short small print,
+    one row of quiet links: "See what's included ↓" and "Already unlocked? Restore" — the link expands the field
+    and the Questions line); a dialog opened to restore shows no offer ("Restore your unlock", the field,
+    Questions); after a purchase or a restore → the thank-you / Manage view (key masked + Show / Copy,
     restore link + Copy, "sent to …" after a purchase, Help); every error and the cancel text are shown in
     the dialog. Purchase view only (?unlock= return): the purchase line, the main action
     "Style your board →" and a one-time confetti burst (never on restore, Manage, ?k= or reload; none
@@ -39,7 +42,7 @@
   Signals (README § 8.4.5): unlock-click {from: panel|toolbar|celebration|card|boards — the pressed Unlock
   button, or the opener of the dialog it sits in; anything else "unknown"}, unlock-success {via; + from
   when via is checkout}, unlock-cancel {from}, unlock-fail {reason}, unlock-restore-attempt {via: key (typed) | url (?k=) | mail (?k=…&src=mail) | email (POST /magic)},
-  dialog-open {from: panel|toolbar|celebration|boards|restore|manage — the visitor opened the dialog (or its
+  dialog-open {from: panel|toolbar|celebration|boards|restore|manage, group: reward|token|bg|photo|goal|boards|none (2026-11-23) — the visitor opened the dialog (or its
   fallback card); never sent when it opens by itself: Stripe return, ?k= result, checkout error}.
   2026-11-21: dialog-close {from (= the from of its dialog-open), how: x|backdrop|escape|see-included|other,
   secs: <3|3-10|10-30|30+; how also "app" = the App Store link of the offer on iPhone / iPad} — when a dialog that sent dialog-open closes (native <dialog> only; not the fallback
@@ -67,7 +70,7 @@ export const STRINGS = {
   support: 'support@token-board.app',   // buyer-facing support for the web unlock; the app keeps its own address
 
   // offer
-  offerTitle: 'Unlock all extras for your token board',
+  offerTitle: 'All extras, one payment',   // short form of 2026-11-23 (was "Unlock all extras for your token board")
   offerLine: 'Your own photos, up to 20 boards, any token goal from 3 to 100, and all 59 rewards, 23 token icons and 8 backgrounds.',
   preview: ['🦄', '🚀', '🌈', '🦖', '🎠', '🖼️'],
   previewLabel: 'Examples of the extras',
@@ -75,8 +78,20 @@ export const STRINGS = {
   unlockLine2: '{price} one-time',         // … line 2 (smaller); the price card in the pages mirrors both
   unlockBusy: 'Opening the payment page…',
   // trust line under the button (dialog; the price card mirrors it in the pages): [icon, text]
-  trust: [['check', 'One-time payment'], ['check', 'no subscription'], ['lock', 'secure checkout by Link (Stripe)'], ['bolt', 'unlocks instantly, key also emailed']],
-  offerFine: 'Web version — the iPhone, iPad and Mac app is sold separately in the App Store. {price} plus tax where applicable; the exact total is shown before you pay. Charged by Link (Stripe). Full refund on request within 14 days of the purchase.',   // the refund sentence (2026-11-21) = Terms § 5; the price card mirrors it
+  // 2026-11-23: three items; "one-time" is on the button and in the title. "14-day refund on request" is the short form of
+  // the refund sentence (Terms § 5); the full sentence stays in the small print of the pricing section
+  trust: [['mail', 'Key sent by email'], ['check', '14-day refund on request'], ['lock', 'Secure checkout by Link (Stripe)']],
+  offerFine: 'Web version — the iPhone, iPad and Mac app is sold separately in the App Store. Price plus tax where applicable; the exact total is shown before you pay. Charged by Link (Stripe).',   // short small print (2026-11-23); the long form lives under the price cards
+  // the picture of the tapped thing (2026-11-23): one role="img" label per kind; {name} = a name from tool.js's fixed lists
+  lookLabel: {
+    reward: 'Example: a token board with the reward “{name}”',
+    token: 'Example: a token board with the token icon “{name}”',
+    bg: 'Example: a token board with the background “{name}”',
+    'photo-reward': 'Example: a token board with a photo of your own as the reward',
+    'photo-bg': 'Example: a token board with a photo of your own as the background',
+    goal: 'Example: a token board with a token goal of 20',
+    boards: 'Example: three token boards'
+  },
   // context line above the title (2026-11-21): the group of the locked item the visitor tapped; none for the ✨ buttons
   context: {
     reward: '🔒 More rewards are part of the extras.',
@@ -92,6 +107,9 @@ export const STRINGS = {
   seeIncluded: 'See what’s included ↓',
   restoreEntry: 'Already unlocked? Restore',
   questions: 'Questions? ',
+  restoreTitle: 'Restore your unlock',   // the dialog opened to restore (the price card's Restore, a ?k= result): no offer in it (2026-11-23)
+  restoreLabelOnly: 'Enter your license key',                                  // … its field label, key path only
+  restoreLabelOnlyEmail: 'Enter your license key or the email you paid with',  // … with the email path (in use)
 
   // restore row
   restoreLabel: 'Already unlocked? Enter your license key',                                    // key path only (EMAIL_RESTORE = false)
@@ -340,6 +358,8 @@ export default function init(api) {
     openHow: null,        // the from of the dialog-open of the open dialog → dialog-close {from}; null = it opened by itself
     openedAt: 0,          // ms, when that dialog opened → dialog-close {secs}
     context: null,        // key of STRINGS.context: the group of the locked item whose tap opened the offer (null = no line)
+    look: null,           // the tapped thing as a small fixed description from tool.js → the picture in the offer (null = the emoji row)
+    restoreOnly: false,   // the open view was opened to restore (Restore on the price card, a ?k= result): no offer, the field only
     entryOpen: false,     // the open offer was opened by the visitor from an offer entry point (→ the app link on iPhone / iPad)
     dialogFrom: 'none',   // the last offer entry point whose dialog the visitor opened (this page load, or before the Stripe redirect)
     justBought: false,    // thank-you after a real purchase (verify → unlockedNow 'checkout'); cleared when the dialog closes
@@ -392,9 +412,10 @@ export default function init(api) {
   const ICONS = {   // 14 px inline icons for the trust line (stroke = currentColor)
     check: '<path d="M3 8.5l3 3 7-7"/>',
     lock: '<rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>',
-    bolt: '<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>'
+    bolt: '<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>',
+    mail: '<rect x="1.8" y="3.5" width="12.4" height="9" rx="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5"/>'
   };
-  function trustLine() {   // "✓ One-time payment  ✓ no subscription  🔒 secure checkout …  ⚡ unlocks instantly …"
+  function trustLine() {   // "✉ Key sent by email  ✓ 14-day refund on request  🔒 Secure checkout by Link (Stripe)"
     const n = el('p', 'tbu-trust');
     S.trust.forEach((t) => {
       const it = el('span', 'tbu-trust-item');
@@ -456,11 +477,13 @@ export default function init(api) {
   }
   // the visitor opens the dialog (an entry point, a Restore button, Manage): dialog-open {from: how}, then the dialog.
   // Everything that opens it without a tap (Stripe return, ?k= result, checkout error, dev hook) calls openDialog directly.
-  function userOpen(how, from, focusRestore, back, group) {
+  function userOpen(how, from, focusRestore, back, group, look) {
     state.entryOpen = DIALOG_FROM.indexOf(how) >= 0;
     state.context = state.entryOpen && group && Object.prototype.hasOwnProperty.call(S.context, group) ? group : null;
+    state.look = state.entryOpen ? cleanLook(look) : null;
+    state.restoreOnly = false;   // openDialog sets it again for a restore open
     if (dlg && dlg.open) { openDialog(from, focusRestore, false, back); return; }   // already open (showModal fallback without an inert page): no second dialog-open
-    signal('dialog-open', { from: how });
+    signal('dialog-open', { from: how, group: state.context || 'none' });   // group (2026-11-23): which kind of locked item opened it; never the item, never user text
     if (DIALOG_FROM.indexOf(how) >= 0) state.dialogFrom = how;
     if (DIALOG_OK) { state.openHow = how; state.openedAt = Date.now(); }   // → dialog-close when this dialog closes
     openDialog(from, focusRestore, false, back);
@@ -469,7 +492,7 @@ export default function init(api) {
   // focusRestore: put the caret in the key field; back: the element that gets the focus when the dialog closes
   function openDialog(from, focusRestore, expandRestore, back) {
     state.openedFrom = from || 'unknown';
-    if (focusRestore || expandRestore) state.restoreOpen = true;   // restore mode: the field is shown expanded
+    if (focusRestore || expandRestore) { state.restoreOpen = true; state.restoreOnly = !state.entryOpen; }   // restore mode: the field only, no offer
     if (!DIALOG_OK) { openFallbackCard(focusRestore); return; }
     if (!dlg) buildDialog();
     renderInto(dlgBody, 'dialog');
@@ -506,7 +529,7 @@ export default function init(api) {
   function closeDialog() { if (dlg && dlg.open) { try { dlg.close(); } catch (e) { onDialogClosed(); } } }
   function onDialogClosed() {
     const how = closeHow; closeHow = 'other';
-    state.context = null; state.entryOpen = false;   // the next open by itself (payment return, error) is the plain offer
+    state.context = null; state.look = null; state.entryOpen = false; state.restoreOnly = false;   // the next open by itself (payment return, error) is the plain offer
     if (state.openHow) {   // only a dialog the visitor opened (it sent dialog-open); once per open
       const ms = Date.now() - state.openedAt;
       signal('dialog-close', { from: state.openHow, how, secs: ms < 3000 ? '<3' : ms < 10000 ? '3-10' : ms < 30000 ? '10-30' : '30+' });
@@ -603,9 +626,72 @@ export default function init(api) {
     n.textContent = text;
     return n;
   }
-  // the offer: title, offer line, preview row, the button, trust line, small print, "See what's included ↓",
-  // status slot, restore (collapsed link in the dialog unless restore mode), Questions
+  // the picture of the tapped thing: a mini token board built from emoji and colour (no image file, no request).
+  // look comes from tool.js's fixed lists; every field is checked again here. Never the visitor's photo or board title.
+  const LOOK_KINDS = ['reward', 'token', 'bg', 'photo-reward', 'photo-bg', 'goal', 'boards'];
+  function cleanLook(look) {
+    if (!look || LOOK_KINDS.indexOf(look.kind) < 0) return null;
+    const str = (v, max) => (typeof v === 'string' && v.length > 0 && v.length <= max ? v : '');
+    return {
+      kind: look.kind,
+      emoji: str(look.emoji, 8),
+      name: str(look.name, 24),
+      color: /^#[0-9a-f]{6}$/i.test(look.color || '') ? look.color : '',
+      dark: look.dark === true
+    };
+  }
+  function miniBoard(token, filled, total, reward, opts) {   // one small board: slots, an arrow, the reward circle
+    const o = opts || {};
+    const b = el('span', 'tbu-mb' + (o.dark ? ' is-dark' : '') + (o.photoBg ? ' is-photo' : '') + (o.small ? ' is-small' : '') + (o.many ? ' is-many' : ''));
+    if (o.color) b.style.background = o.color;
+    const slots = el('span', 'tbu-mb-slots');
+    for (let i = 0; i < total; i++) {
+      const sl = el('span', 'tbu-mb-slot' + (i < filled ? ' is-on' : ''));
+      if (i < filled) sl.textContent = token;
+      slots.appendChild(sl);
+    }
+    b.appendChild(slots);
+    b.appendChild(el('span', 'tbu-mb-arrow')).textContent = '→';
+    b.appendChild(el('span', 'tbu-mb-reward' + (o.photoReward ? ' is-photo' : ''))).textContent = reward;
+    return b;
+  }
+  function lookPicture() {
+    const row = p('tbu-preview');
+    row.setAttribute('role', 'img');
+    const L = state.look;
+    if (!L || ((L.kind === 'reward' || L.kind === 'token') && !L.emoji) || (L.kind === 'bg' && !L.color)) {   // the ✨ buttons: examples of the extras
+      row.setAttribute('aria-label', S.previewLabel);
+      S.preview.forEach((e) => { const s = el('span', ''); s.textContent = e; row.appendChild(s); });
+    } else {
+      row.classList.add('tbu-look');
+      row.setAttribute('aria-label', fill(S.lookLabel[L.kind], { name: L.name }));
+      if (L.kind === 'reward') row.appendChild(miniBoard('⭐', 3, 5, L.emoji));
+      else if (L.kind === 'token') row.appendChild(miniBoard(L.emoji, 3, 5, '🎁'));
+      else if (L.kind === 'bg') row.appendChild(miniBoard('⭐', 3, 5, '🎁', { color: L.color, dark: L.dark }));
+      else if (L.kind === 'photo-reward') row.appendChild(miniBoard('⭐', 3, 5, '🖼️', { photoReward: true }));
+      else if (L.kind === 'photo-bg') row.appendChild(miniBoard('⭐', 3, 5, '🎁', { photoBg: true }));
+      else if (L.kind === 'goal') row.appendChild(miniBoard('⭐', 8, 20, '🎁', { many: true }));
+      else {   // boards
+        row.appendChild(miniBoard('⭐', 2, 3, '🎁', { small: true }));
+        row.appendChild(miniBoard('❤️', 1, 3, '🍦', { small: true, color: '#FFE0EC' }));
+        row.appendChild(miniBoard('🚀', 3, 3, '🎮', { small: true, color: '#D9ECFF' }));
+      }
+    }
+    row.querySelectorAll('span').forEach((n) => n.setAttribute('aria-hidden', 'true'));
+    return row;
+  }
+  // the offer, short form of 2026-11-23: context line, title, offer line, the picture, the button, trust line, small print,
+  // status slot, one row of quiet links ("See what's included ↓", "Already unlocked? Restore"), the app link on iPhone / iPad.
+  // The restore field and the Questions line show once Restore is pressed (or a restore message is there).
+  // A view opened to restore (state.restoreOnly) has no offer: "Restore your unlock", the field, Questions.
   function renderOffer(host, variant) {
+    if (state.restoreOnly) {
+      host.appendChild(title(variant, S.restoreTitle));
+      host.appendChild(msgLine('main'));
+      renderRestore(host, variant, EMAIL_RESTORE ? S.restoreLabelOnlyEmail : S.restoreLabelOnly);
+      host.appendChild(lineWithMail('tbu-quiet', S.questions));
+      return;
+    }
     if (state.context) {   // which group was tapped; the offer below is the same for every entry point
       const c = p('tbu-context', S.context[state.context]);
       if (variant === 'dialog') c.id = 'tbu-dlg-context';
@@ -613,28 +699,29 @@ export default function init(api) {
     }
     host.appendChild(title(variant, S.offerTitle));
     host.appendChild(p('tbu-lead', S.offerLine));
-    const row = p('tbu-preview');
-    row.setAttribute('role', 'img'); row.setAttribute('aria-label', S.previewLabel);
-    S.preview.forEach((e) => { const s = el('span', ''); s.setAttribute('aria-hidden', 'true'); s.textContent = e; row.appendChild(s); });
-    host.appendChild(row);
+    host.appendChild(lookPicture());
     host.appendChild(primary(state.openedFrom));
     host.appendChild(trustLine());
     const fine = p('tbu-fine', fill(S.offerFine));
     fine.append(' ', legalLink('terms.html', S.legalTerms), ' · ', legalLink('privacy.html', S.legalPrivacy));
     host.appendChild(fine);
+    host.appendChild(msgLine('main'));
+    const collapsed = variant === 'dialog' && !state.restoreOpen && !state.msgs.restore;
+    const links = p('tbu-links');
     const pricing = document.getElementById('pricing');
     if (variant === 'dialog' && pricing && !pricing.hidden && !(api.isFullscreen && api.isFullscreen())) {   // not in fullscreen / expanded mode, not on a page without #pricing
-      const see = p('tbu-see');
       const b = smallBtn(S.seeIncluded);
       b.addEventListener('click', () => {
         opener = null;   // the page scrolls to the pricing section: no focus jump back up
         closeHow = 'see-included';
         closeDialog();
+        if (api.pricingJump) api.pricingJump();   // → pro-view {via: "dialog"}
         try { pricing.scrollIntoView({ behavior: api.reducedMotion ? 'auto' : 'smooth', block: 'start' }); } catch (e) { try { pricing.scrollIntoView(); } catch (x) {} }
       });
-      see.appendChild(b);
-      host.appendChild(see);
+      links.appendChild(el('span', 'tbu-see')).appendChild(b);
     }
+    if (collapsed) links.appendChild(el('span', 'tbu-restore-toggle')).appendChild(restoreToggle(host));
+    if (links.firstChild) host.appendChild(links);
     // iPhone / iPad, an offer the visitor opened from an entry point: one quiet link to the app. A normal link (the
     // browser follows it; appstore-click.js counts it by data-td-position); the dialog closes right after the tap.
     // Not while the restore field is open or an error is shown: that visitor is busy with a purchase or a key.
@@ -647,14 +734,12 @@ export default function init(api) {
       line.appendChild(a);
       host.appendChild(line);
     }
-    host.appendChild(msgLine('main'));
-    if (variant === 'dialog' && !state.restoreOpen && !state.msgs.restore) renderRestoreToggle(host);
-    else renderRestore(host, variant);
+    if (collapsed) return;
+    renderRestore(host, variant);
     host.appendChild(lineWithMail('tbu-quiet', S.questions));
   }
   // collapsed restore: one text link; pressing it expands the field + Restore in place and focuses the field
-  function renderRestoreToggle(host) {
-    const n = p('tbu-restore-toggle');
+  function restoreToggle(host) {
     const b = smallBtn(S.restoreEntry);
     b.setAttribute('aria-expanded', 'false');
     b.addEventListener('click', () => {
@@ -663,18 +748,17 @@ export default function init(api) {
       const i = host.querySelector('input');
       if (i) focusNoScroll(i);
     });
-    n.appendChild(b);
-    host.appendChild(n);
+    return b;
   }
   function renderPending(host, variant) {   // back from Stripe: /verify running or failed (Try again), key field for the email
     host.appendChild(title(variant, S.pendingTitle));
     host.appendChild(msgLine('main'));
     renderRestore(host, variant);
   }
-  function renderRestore(host, variant) {
+  function renderRestore(host, variant, label) {
     const box = el('div', 'tbu-restore');
     const id = 'tbu-restore-' + variant;
-    const lab = el('label', ''); lab.setAttribute('for', id); lab.textContent = EMAIL_RESTORE ? S.restoreLabelEmail : S.restoreLabel;
+    const lab = el('label', ''); lab.setAttribute('for', id); lab.textContent = label || (EMAIL_RESTORE ? S.restoreLabelEmail : S.restoreLabel);
     box.appendChild(lab);
     const row = el('div', 'tbu-row');
     const input = document.createElement('input');
@@ -850,6 +934,7 @@ export default function init(api) {
       signal('unlock-fail', { reason: failReason(code) });
       setBusy(false);
       setMsg('main', errText(code, 'checkout'), 'error');
+      state.restoreOnly = false;   // the error belongs to the offer view
       openDialog(from);
     }
   }
@@ -981,10 +1066,10 @@ export default function init(api) {
   handleUrl();
 
   return {
-    show(from, back, group) { userOpen(from, from, false, back, group); },   // an entry point in tool.js (panel | toolbar | celebration | boards)
+    show(from, back, group, look) { userOpen(from, from, false, back, group, look); },   // an entry point in tool.js (panel | toolbar | celebration | boards)
     panelClosed() {   // Show lasts until the panel (or the dialog) closes; the fallback card closes with the panel
       const v = !DIALOG_OK ? views.find((x) => x.variant === 'panel') : null;
-      if (v) { v.host.hidden = true; state.restoreOpen = false; state.justBought = false; state.context = null; state.entryOpen = false; }
+      if (v) { v.host.hidden = true; state.restoreOpen = false; state.justBought = false; state.context = null; state.look = null; state.entryOpen = false; state.restoreOnly = false; }
       if (state.revealed || v) { state.revealed = false; render(); }
     },
     cardAction(target) {   // Unlock / Restore on the price card
