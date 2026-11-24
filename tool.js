@@ -93,15 +93,19 @@
       fullscreen fallback). data-bg = background id ("white" | "blue" in T2).
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
+  Returning-visitor card (T21, 2026-11-24, ?v=20261124a): one two-tap question for a browser on its 2nd+ page load,
+    at least 1 day after its first visit (see "returning-visitor card" below). Signals: about-shown {load},
+    about-who {who}, about-help {vote, who}, about-dismiss {step}; tool-start adds back and about. localStorage
+    tb-about {n, done, dismissed}.
   Nothing personal is sent. localStorage keys: tb-board (the board model), tb-fs-hint (fullscreen hint shown),
-  tb-visits {count, first}, tb-hint ("1" = empty-board hint done), tb-settings {count} (page loads
+  tb-visits {count, first}, tb-about (the question card: shown / answered / closed), tb-hint ("1" = empty-board hint done), tb-settings {count} (page loads
   with a panel open), tb-license (the license key; read here, written by unlock.js). IndexedDB: tb-photos (store
   photos: reward, background).
 */
 
 import { send, setContext, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261121a';
 
-const BUILD_V = '20261123a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
+const BUILD_V = '20261124a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -126,6 +130,7 @@ let statusTimer = 0;
 export function showStatus(text, ms = 2000) {
   const el = document.getElementById('tb-status');
   if (!el) return;
+  removeAbout(); // the pill sits in the same zone as the question card on phones
   el.textContent = text;
   el.classList.add('is-visible');
   clearTimeout(statusTimer);
@@ -504,7 +509,9 @@ function noteTap() {
   idleTimer = setTimeout(endSession, IDLE_MS);
   if (!startSent) {
     startSent = true;
-    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag(), unlocked: unlocked ? 'yes' : 'no', boards: boardsBucket() });
+    removeAbout(); // the board is in use: the question card goes, without a signal
+    signal('tool-start', { slots: String(model.slots), icon: freeIcon(model.icon) ? 'free' : 'locked', background: photoShown('background') ? 'photo' : model.background, os: osName(), lang: langTag(), unlocked: unlocked ? 'yes' : 'no', boards: boardsBucket(),
+      back: returning ? 'yes' : 'no', about: aboutShown ? 'shown' : 'none' });
   }
 }
 
@@ -540,12 +547,183 @@ function sendVisit() {
   const first = (v && typeof v.first === 'number' && v.first > 0 && v.first <= now) ? v.first : now;
   try { localStorage.setItem('tb-visits', JSON.stringify({ count, first })); } catch (e) { /* ignore */ }
   const days = Math.floor((now - first) / 86400000);
+  returning = count >= 2 && days >= 1; // a real comeback: not a reload or a payment return on the first day
   const nth = count === 1 ? '1' : count === 2 ? '2' : count <= 5 ? '3-5' : count <= 10 ? '6-10' : '11+';
   setContext({ visitNth: nth }); // from here on every signal of this page load carries the same bucket
   signal('visit', {
     nth,
     daysSinceFirst: days < 1 ? '0' : days <= 7 ? '1-7' : days <= 30 ? '8-30' : '31+'
   });
+}
+
+/* ---------------- returning-visitor card (T21, 2026-11-24): one short question, two taps ----------------
+   Worked example: keepquiet.app (2026-11-24). Who sees it: a browser on its 2nd+ page load AND at least 1 day after
+   its first visit (tb-visits), not on a ?unlock= / ?k= load, storage works; buyers see it too (User 2026-11-24).
+   When: after the page is idle, once the stage is >= 50 % in view, only while the board is untouched in this page
+   load and no panel, dialog, celebration or fullscreen is open. Where: position absolute, the board never moves —
+   right of the board when there is room (data-pos "side"), else one strip over the H1 zone between the top row and
+   the board (data-pos "top"; the H1 is faded out while the card lies on it). If it would cover the board or a button it is not
+   shown and the load does not count; measured again on every resize. localStorage tb-about {n, done, dismissed}:
+   n = page loads on which the card really showed (at most ABOUT_MAX); an answer to step 1 or the × ends it for
+   good. The first slot tap, a panel, the offer dialog, fullscreen or a status message removes it without a signal.
+   Step 1: who (fixed values); step 2: does it help (thumbs). Never any text from the visitor. */
+const ABOUT_KEY = 'tb-about', ABOUT_MAX = 2;
+const ABOUT_Q1 = 'Grown-ups: what’s your role?', ABOUT_Q2 = 'Does this token board help you?';
+const ABOUT_THANKS = 'Thank you! This helps us improve the board.';
+const ABOUT_WHO = [['parent', 'Parent'], ['teacher', 'Teacher'], ['therapist', 'Therapist'], ['other', 'Other']];
+let returning = false;   // set by sendVisit()
+let aboutCard = null, aboutLive = null, aboutShown = false, aboutTimer = 0;
+function aboutState() { try { return JSON.parse(localStorage.getItem(ABOUT_KEY) || 'null') || {}; } catch (e) { return null; } }
+function aboutSave(st) { try { localStorage.setItem(ABOUT_KEY, JSON.stringify(st)); } catch (e) { /* ignore */ } }
+function aboutEligible() {
+  if (!returning || storageBlocked || window.__tbUnlock) return false;
+  const st = aboutState();
+  return !!st && !st.done && !st.dismissed && !((st.n || 0) >= ABOUT_MAX);
+}
+function aboutFreeScreen() {
+  return !startSent && !stage.classList.contains('is-settings') && !stage.classList.contains('is-complete') &&
+    !isFullscreen() && !document.querySelector('dialog[open]');
+}
+function removeAbout() {
+  clearTimeout(aboutTimer);
+  if (!aboutCard) return;
+  window.removeEventListener('resize', aboutFit);
+  const hadFocus = aboutCard.contains(document.activeElement);
+  aboutCard.remove();
+  aboutCard = null; aboutLive = null;
+  stage.classList.remove('has-ask-top');
+  if (hadFocus) { const s0 = slotButton(0); if (s0) { try { s0.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } }
+}
+function aboutDismiss(step) {
+  const st = aboutState() || {}; st.dismissed = true; aboutSave(st);
+  signal('about-dismiss', { step });
+  removeAbout();
+}
+function aboutSay(text) { if (aboutLive) aboutLive.textContent = text; } // one live region from the start: each step is announced
+function aboutClear() { while (aboutCard.firstChild && aboutCard.firstChild !== aboutLive) aboutCard.firstChild.remove(); }
+function aboutEl(tag, cls, text) { const n = document.createElement(tag); n.className = cls; if (text) n.textContent = text; return n; }
+function aboutBtn(cls, text, label) {
+  const b = aboutEl('button', cls, text); b.type = 'button';
+  if (label) b.setAttribute('aria-label', label);
+  return b;
+}
+function aboutHead(text, step) {
+  const h = aboutEl('div', 'tb-ask-head');
+  h.appendChild(aboutEl('p', 'tb-ask-q', text));
+  const x = aboutBtn('tb-ask-x', '×', 'No thanks, close');
+  x.addEventListener('click', () => aboutDismiss(step));
+  h.appendChild(x);
+  return h;
+}
+function aboutStep2(who, moveFocus) {
+  aboutClear();
+  aboutCard.setAttribute('data-step', '2');
+  aboutCard.insertBefore(aboutHead(ABOUT_Q2, '2'), aboutLive);
+  aboutSay('Thank you. Next question: ' + ABOUT_Q2);
+  const row = aboutEl('div', 'tb-ask-opts tb-ask-votes');
+  [['up', '👍', 'Yes, it helps'], ['down', '👎', 'Not really']].forEach(([vote, emoji, label]) => {
+    const b = aboutBtn('tb-ask-opt tb-ask-vote', emoji, label);
+    b.addEventListener('click', () => {
+      signal('about-help', { vote, who });
+      const had = aboutCard.contains(document.activeElement);
+      aboutClear();
+      aboutCard.setAttribute('data-step', 'done');
+      const t = aboutEl('p', 'tb-ask-thanks', ABOUT_THANKS);
+      t.setAttribute('aria-hidden', 'true');
+      aboutCard.insertBefore(t, aboutLive);
+      aboutSay(ABOUT_THANKS);
+      if (had) { aboutCard.tabIndex = -1; try { aboutCard.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+      aboutFit();
+      aboutTimer = setTimeout(removeAbout, 2500);
+    });
+    row.appendChild(b);
+  });
+  aboutCard.insertBefore(row, aboutLive);
+  if (moveFocus) { const b = aboutCard.querySelector('.tb-ask-opt'); if (b) { try { b.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } }
+  aboutFit();
+}
+const rectsMeet = (a, b) => a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+/** Places the card (side or top) and says whether it is clear of the board and the buttons. A card that is already
+    counted as shown and no longer fits (resize, a turned phone) is removed, without a signal. */
+function aboutFit() {
+  if (!aboutCard) return false;
+  const board = document.getElementById('tb-board'), tools = document.getElementById('tb-tools');
+  const fs = stage.querySelector('[data-tb="fullscreen"]'), actions = document.getElementById('tb-actions');
+  const rect = el => (el ? el.getBoundingClientRect() : { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 });
+  const s = rect(stage), b = rect(board), t = rect(tools), f = rect(fs), hd = rect(stage.querySelector('.tb-heading'));
+  const free = s.right - b.right;
+  const side = b.width > 0 && free >= 264;
+  aboutCard.setAttribute('data-pos', side ? 'side' : 'top');
+  let enough = true;
+  if (side) {
+    aboutCard.style.width = Math.round(Math.min(300, free - 48)) + 'px';
+    aboutCard.style.left = Math.round(b.right - s.left + 24) + 'px';
+    aboutCard.style.top = Math.round(b.top - s.top) + 'px';
+  } else {
+    const w = Math.max(0, Math.min(s.width - 24, 440));
+    aboutCard.style.width = w ? Math.round(w) + 'px' : '';
+    aboutCard.style.left = w ? Math.round((s.width - w) / 2) + 'px' : '12px';
+    const zoneTop = Math.max(t.bottom, f.bottom) + 6, zoneBottom = b.top - 6, h = aboutCard.offsetHeight;
+    if (b.height > 0 && h > zoneBottom - zoneTop) enough = false; // not enough room between the top row and the board
+    // over the H1 (its middle on the H1's middle), kept inside the zone; without an H1 box: the middle of the zone
+    const mid = hd.height > 0 ? (hd.top + hd.bottom) / 2 : (zoneTop + zoneBottom) / 2;
+    aboutCard.style.top = Math.round(Math.max(zoneTop, Math.min(mid - h / 2, zoneBottom - h)) - s.top) + 'px';
+  }
+  const c = aboutCard.getBoundingClientRect();
+  stage.classList.toggle('has-ask-top', rectsMeet(c, hd)); // the H1 fades out only while the card really lies on it
+  const ok = enough && ![board, tools, fs, actions].some(el => el && rectsMeet(c, el.getBoundingClientRect()));
+  if (!ok && aboutShown) removeAbout();
+  else if (!ok) stage.classList.remove('has-ask-top');
+  return ok;
+}
+function showAbout() {
+  if (aboutCard || aboutShown || !stage || !aboutEligible() || !aboutFreeScreen()) return;
+  const heading = stage.querySelector('.tb-heading');
+  aboutCard = aboutEl('div', 'tb-ask');
+  aboutCard.setAttribute('role', 'group'); aboutCard.setAttribute('aria-label', 'Quick question');
+  aboutCard.setAttribute('data-step', '1');
+  aboutLive = aboutEl('span', 'tb-sr'); aboutLive.setAttribute('role', 'status');
+  aboutCard.appendChild(aboutLive);
+  aboutCard.insertBefore(aboutHead(ABOUT_Q1, '1'), aboutLive);
+  aboutCard.addEventListener('keydown', ev => { // Escape = the ×
+    if (ev.key !== 'Escape' && ev.key !== 'Esc') return;
+    ev.stopPropagation();
+    const step = aboutCard.getAttribute('data-step');
+    if (step === 'done') removeAbout(); else aboutDismiss(step);
+  });
+  const grid = aboutEl('div', 'tb-ask-opts');
+  ABOUT_WHO.forEach(([who, label]) => {
+    const b = aboutBtn('tb-ask-opt', label);
+    b.addEventListener('click', () => {
+      const st = aboutState() || {}; st.done = true; aboutSave(st);
+      signal('about-who', { who });
+      aboutStep2(who, aboutCard.contains(document.activeElement) && !document.documentElement.classList.contains('tb-pointer'));
+    });
+    grid.appendChild(b);
+  });
+  aboutCard.insertBefore(grid, aboutLive);
+  // in the DOM right after the H1: reading order is title → question → board
+  if (heading && heading.parentNode === stage) stage.insertBefore(aboutCard, heading.nextSibling); else stage.appendChild(aboutCard);
+  if (!aboutFit()) { aboutCard.remove(); aboutCard = null; aboutLive = null; stage.classList.remove('has-ask-top'); return; } // no room: not on this page load, and the load does not count
+  window.addEventListener('resize', aboutFit);
+  const st = aboutState() || {}; st.n = (st.n || 0) + 1; aboutSave(st);
+  aboutShown = true;
+  signal('about-shown', { load: String(st.n) });
+}
+function scheduleAbout() {
+  if (!stage || !aboutEligible()) return;
+  const whenVisible = () => {
+    if (typeof IntersectionObserver !== 'function') { showAbout(); return; }
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(en => en.isIntersecting && en.intersectionRatio >= 0.5)) { io.disconnect(); showAbout(); }
+    }, { threshold: [0.5] });
+    io.observe(stage);
+  };
+  const idle = () => {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(whenVisible, { timeout: 3000 });
+    else setTimeout(whenVisible, 1500);
+  };
+  if (document.readyState === 'complete') idle(); else window.addEventListener('load', idle, { once: true });
 }
 
 /* ---------------- celebration ---------------- */
@@ -701,6 +879,7 @@ export function openPanel(opts) {
   if (wasOpen && mode === panelMode) { if (o.section) showSection(o.section); return; }
   if (mode === 'boards' && isFullscreen()) return; // no board switcher in fullscreen
   if (!wasOpen) {
+    removeAbout();
     lastFocus = document.activeElement;
     stage.classList.add('is-settings');
     panel.setAttribute('aria-hidden', 'false');
@@ -1449,6 +1628,7 @@ function openOffer(from, back, group, look) {
   // pending: the page came back from payment / a restore link and unlock.js is not in yet. Its init handles that
   // session or key itself (and opens the dialog), so this tap must not open a second view or start a second request.
   const pending = !!window.__tbUnlock;
+  removeAbout();
   loadUnlock().then(c => {
     if (!c) { unlockLoadFailed(); return; }
     if (!pending) c.show(from, back || null, group || null, look || null);
@@ -1701,6 +1881,7 @@ function wireProCard() {
       const t = ev.target && ev.target.closest ? ev.target.closest('[data-tbu-unlock],[data-tbu-restore]') : null;
       if (!t || !card.contains(t)) return;
       const pending = !!window.__tbUnlock; // see openOffer
+      removeAbout();
       loadUnlock().then(c => { if (!c) cardLoadFailed(card); else if (!pending) c.cardAction(t); });
     });
     const warm = () => { loadUnlock(); };
@@ -1782,6 +1963,7 @@ function exitExpanded(fromPopstate) {
 }
 
 function toggleFullscreen() {
+  removeAbout();
   if (boardsOpen()) closePanel(); // no board switcher in fullscreen
   if (nativeSupported()) {
     if (nativeActive()) {
@@ -1822,7 +2004,7 @@ if (stage) {
   if (photoInput) photoInput.addEventListener('change', () => onPhotoPicked(photoInput));
   // Refit a big goal when the stage changes size (window, panel on tablets, fullscreen on / off).
   let fitFrame = 0;
-  const refit = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitSlots); };
+  const refit = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(() => { fitSlots(); aboutFit(); }); }; // the question card is measured again after the board
   if (typeof ResizeObserver === 'function') { try { new ResizeObserver(refit).observe(stage); } catch (e) { /* ignore */ } }
   window.addEventListener('resize', refit);
   wireProCard();
@@ -1832,10 +2014,12 @@ if (stage) {
   else if (unlocked || /[?&]dev-thanks=1(&|$)/.test(location.search)) loadUnlock();
   window.addEventListener('online', () => { if (window.__tbUnlock && !unlockCtl) loadUnlock(); });
   sendVisit();
+  scheduleAbout();
   requestPersist(); // a browser that already has several boards
   // Another tab changed the boards: take its list (a stale tab must never write back over a board added or
   // deleted there). This tab keeps showing its own board while it still exists.
   window.addEventListener('storage', ev => {
+    if (ev.key === ABOUT_KEY && aboutCard) { const a = aboutState(); if (!a || a.done || a.dismissed) removeAbout(); } // answered or closed in another tab
     if (ev.key !== BOARDS_KEY && ev.key !== null) return;
     const keep = model.id;
     load();
@@ -1927,7 +2111,7 @@ if (stage) {
       tapSlot,
       fillAll() { for (let i = 0; i < model.slots; i++) if (!model.filled.includes(i)) tapSlot(i); },
       clearStorage() {
-        try { [STORAGE_KEY, BOARDS_KEY, 'tb-fs-hint', 'tb-tried', HINT_KEY, SETTINGS_KEY, LICENSE_KEY, 'tb-device', 'tb-mock'].forEach(k => { delete lsMem[k]; localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+        try { [STORAGE_KEY, BOARDS_KEY, 'tb-fs-hint', 'tb-tried', HINT_KEY, SETTINGS_KEY, LICENSE_KEY, 'tb-device', 'tb-mock', ABOUT_KEY].forEach(k => { delete lsMem[k]; localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
         Promise.all(boards.flatMap(b => [photoDelete(photoKey(b, 'reward')), photoDelete(photoKey(b, 'background')), photoDelete('reward'), photoDelete('background')])).finally(() => {
           try { location.reload(); } catch (e) { /* not available in some test runners */ }
         });
@@ -1951,6 +2135,17 @@ if (stage) {
       /* tool-test.html "session +3 min": moves the session start back, to see the tool-session minutes / total buckets */
       sessionPlus3() { sessionStart = (sessionStart || Date.now()) - 3 * 60 * 1000; showStatus('Session start moved back 3 min'); },
       setSessionStart(ts) { sessionStart = ts; },
+      // the question card (T21): show it now (skips the idle wait and the in-view check), make this browser a
+      // returning one, or forget that the card was shown / answered — the last two reload the page
+      aboutNow() { showAbout(); return !!aboutCard; },
+      aboutReturning() {
+        try { localStorage.setItem('tb-visits', JSON.stringify({ count: 3, first: Date.now() - 3 * 86400000 })); localStorage.removeItem(ABOUT_KEY); } catch (e) { /* ignore */ }
+        try { location.reload(); } catch (e) { /* not available in some test runners */ }
+      },
+      aboutReset() {
+        try { localStorage.removeItem(ABOUT_KEY); } catch (e) { /* ignore */ }
+        try { location.reload(); } catch (e) { /* not available in some test runners */ }
+      },
       simulatePagehide() { window.dispatchEvent(new Event('pagehide')); },
       simulateIdle() { endSession(); } // what the 10-min idle timer does
     });
