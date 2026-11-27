@@ -69,6 +69,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 .tb-act-boards:hover{background:#1A5FB4;border-color:#1A5FB4}
 .tb-act-boards>span{font-size:1.15em}
 @media(max-width:699px){.tb-tools{right:12px;gap:6px}.tb-tools .tb-act{padding:0 12px;font-size:.9rem}}
+/* T22 (2026-11-27): a second "🎨 Style" in the row under the board, before ✨; phones: both on one line */
+@media(max-width:699px){.tb-actions{gap:8px}.tb-actions .tb-act{padding:0 12px}.tb-actions .tb-act-style{min-width:0}}
+@media(max-width:819px){.tb-stage.is-settings .tb-actions .tb-act-style{min-width:0}} /* 700–819 px with the panel open: the row stays on one line */
 .tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
 .tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
 .tb-empty-hint[hidden]{display:none}
@@ -82,9 +85,9 @@ body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy
 @media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media(max-width:599px){.tb-brand-sub{display:none}}
 </style>
-<link rel="preload" as="style" href="tool.css?v=20261124b">
-<link rel="stylesheet" href="tool.css?v=20261124b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool.css?v=20261124b"></noscript>
+<link rel="preload" as="style" href="tool.css?v=20261127a">
+<link rel="stylesheet" href="tool.css?v=20261127a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="tool.css?v=20261127a"></noscript>
 <style>
 /* test panel only (this page is internal: noindex, never in the sitemap) */
 body{padding-bottom:250px}
@@ -119,7 +122,7 @@ window.__tbLog = function (name, payload) {
 };
 </script>
 <link rel="modulepreload" href="assets/tool-signals.js?v=20261121a">
-<script type="module" src="tool.js?v=20261124a"></script>
+<script type="module" src="tool.js?v=20261127a"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test" data-tbu-gate>
 <a class="tb-skip" href="#board">Skip to the board</a>
@@ -169,6 +172,7 @@ window.__tbLog = function (name, payload) {
       <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
     </div>
     <div class="tb-actions" id="tb-actions">
+      <button type="button" class="tb-act tb-act-style" data-tb="settings-row" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
       <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Unlock all extras</span></button>
     </div>
   </div>

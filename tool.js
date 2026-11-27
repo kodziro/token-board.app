@@ -93,6 +93,10 @@
       fullscreen fallback). data-bg = background id ("white" | "blue" in T2).
     - signal(name, payload) only calls window.__tbLog until T4 connects TelemetryDeck.
     - Signals sent here: fullscreen {mode}, board-complete {slots}.
+  Style button under the board (T22, 2026-11-27, ?v=20261127a): a second "🎨 Style" in the row under the board
+    (#tb-actions, before ✨; data-tb="settings-row"), because opens through the top-right pill fell from 40 % to 9 %
+    of tool-starts after T16. The top-right pill stays. Same toggle; settings-open {from "row"} ("button" = top right).
+    The row is hidden as before: unlocked, fullscreen, phone with the panel open.
   Returning-visitor card (T21, 2026-11-24, ?v=20261124a): one two-tap question for a browser on its 2nd+ page load,
     at least 1 day after its first visit (see "returning-visitor card" below). Signals: about-shown {load},
     about-who {who}, about-help {vote, who}, about-dismiss {step}; tool-start adds back and about. localStorage
@@ -105,7 +109,7 @@
 
 import { send, setContext, isTestMode as signalsTestMode } from './assets/tool-signals.js?v=20261121a';
 
-const BUILD_V = '20261124a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
+const BUILD_V = '20261127a'; // = the ?v= of tool.js in index.html / tool-test.html (tests check it); sent as v with every signal
 
 const stage = document.querySelector('[data-tb-stage]');
 
@@ -837,6 +841,7 @@ export function resetTokens() {
    ===================================================================== */
 const panel = document.getElementById('tb-panel');
 const settingsBtn = stage && stage.querySelector('[data-tb="settings"]');
+const settingsRowBtn = stage && stage.querySelector('[data-tb="settings-row"]'); // T22: the second "🎨 Style", under the board
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 let lastFocus = null;
 
@@ -868,7 +873,7 @@ function showSection(name) {
   if ((window.scrollX || 0) !== x || (window.scrollY || 0) !== y) window.scrollTo(x, y); // old browsers ignore preventScroll
 }
 
-/** opts: mode "style" (default) | "boards" (T16: the same panel, other body); from "button" | "reward" | "title"
+/** opts: mode "style" (default) | "boards" (T16: the same panel, other body); from "button" | "row" (T22) | "reward" | "title"
     (settings-open, style only), section "reward" = open at that group. Opening the other mode while the panel is
     open switches its body. */
 export function openPanel(opts) {
@@ -915,7 +920,7 @@ export function closePanel() {
   panel.removeAttribute('role'); panel.removeAttribute('aria-modal');
   const back0 = panelMode === 'boards' ? boardsBtn : settingsBtn;
   // both pills aria-expanded false; the header text stays while the panel slides out (the next open sets its mode)
-  [settingsBtn, boardsBtn].forEach(b => { if (b) b.setAttribute('aria-expanded', 'false'); });
+  [settingsBtn, settingsRowBtn, boardsBtn].forEach(b => { if (b) b.setAttribute('aria-expanded', 'false'); });
   closeConfirm(false);
   if (unlockCtl) unlockCtl.panelClosed(); // "Show" (the key) lasts until the panel closes
   fitSlots();
@@ -968,7 +973,7 @@ function setPanelMode(mode) {
   const x = panel && panel.querySelector('.tb-panel-head [data-tb="close"]');
   if (x) x.setAttribute('aria-label', isBoards ? 'Close the boards panel' : 'Close the style panel');
   const open = !!stage && stage.classList.contains('is-settings');
-  if (settingsBtn) settingsBtn.setAttribute('aria-expanded', open && !isBoards ? 'true' : 'false');
+  [settingsBtn, settingsRowBtn].forEach(b => { if (b) b.setAttribute('aria-expanded', open && !isBoards ? 'true' : 'false'); });
   if (boardsBtn) boardsBtn.setAttribute('aria-expanded', open && isBoards ? 'true' : 'false');
 }
 const boardsOpen = () => !!stage && stage.classList.contains('is-settings') && panelMode === 'boards';
@@ -1851,8 +1856,10 @@ function syncUnlockButtons() {
   try { document.documentElement.classList.toggle('tbu-has-key', unlocked); } catch (e) { /* ignore */ }
   const bar = stage && stage.querySelector('[data-tb="extras"]');
   if (bar) { bar.hidden = !show; bar.style.display = show ? '' : 'none'; } // inline too: tool.css loads after the critical CSS
-  const row = document.getElementById('tb-actions'); // T16: only the ✨ button is left in the row under the board
-  if (row) row.hidden = !show;
+  // the row under the board: ✨ and, since T22, the second 🎨 Style — hidden as a whole when unlocked; on a gated page
+  // without tb-dev only ✨ is hidden (bar, above) and 🎨 Style stays
+  const row = document.getElementById('tb-actions');
+  if (row) row.hidden = unlocked;
   if (celebrateExtrasBtn && !show) celebrateExtrasBtn.hidden = true;
   const pricing = document.getElementById('pricing');
   if (pricing && !unlockUi) pricing.hidden = true;
@@ -2044,9 +2051,13 @@ if (stage) {
     openExtras('celebration', celebrateExtrasBtn); // the dialog sits over the celebration; focus comes back here
   });
 
-  // Settings panel: "🎨 Style" under the board (toggles), the reward circle (opens at Reward)
+  // Settings panel: the top-right "🎨 Style" (toggles), the second one under the board (T22, the same toggle), the
+  // reward circle (opens at Reward). A close with one of the two pills leaves the focus on that pill (lastFocus).
   if (settingsBtn) settingsBtn.addEventListener('click', () => {
-    if (stage.classList.contains('is-settings') && panelMode === 'style') closePanel(); else openPanel({ from: 'button' });
+    if (stage.classList.contains('is-settings') && panelMode === 'style') { lastFocus = settingsBtn; closePanel(); } else openPanel({ from: 'button' });
+  });
+  if (settingsRowBtn) settingsRowBtn.addEventListener('click', () => { // T22: the same toggle; settings-open {from "row"}
+    if (stage.classList.contains('is-settings') && panelMode === 'style') { lastFocus = settingsRowBtn; closePanel(); } else openPanel({ from: 'row' });
   });
   if (boardsBtn) boardsBtn.addEventListener('click', () => {
     if (boardsOpen()) closePanel(); else openPanel({ mode: 'boards' });
